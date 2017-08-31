@@ -1,0 +1,46 @@
+
+<div class="left">
+	<form>
+		<fieldset id="target_firmware_fieldset">
+			<legend>
+				Target Firmware Update
+			</legend>
+			<fieldset>
+				<legend>
+					File Selection
+				</legend>
+				<center>
+					<input type="file" name="target_firmware" id="target_firmware" />
+				</center>
+			</fieldset>
+			<div>
+				<center>
+					<input type="button" value="Upload" onclick="submit_target_firmware();" />
+				</center>
+			</div>
+		</fieldset>
+		<fieldset id="target_cpustate_fieldset">
+			<legend>
+				Target Debug
+			</legend>
+			<div>
+				<center>
+					<input type="button" value="Halt" onclick="submit_target_state('halt');" />
+					<input type="button" value="Resume" onclick="submit_target_state('resume');" />
+					<input type="button" value="Step" onclick="submit_target_state('step');" />
+					<input type="button" value="Reset" onclick="submit_target_state('reset');" />
+				</center>
+			</div>
+		</fieldset>
+		<center>
+			<div id="save_status">
+			</div>
+		</center>
+	</form>
+</div>
+
+<div class="right">
+	<div class="pre" id="target_config">
+	</div>
+</div>
+

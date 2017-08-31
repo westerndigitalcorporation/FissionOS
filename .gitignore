@@ -1,0 +1,9 @@
+.gitignore
+.sconsign.dblite
+
+*.o
+*.a
+*.pyc
+*.elf
+*.bin
+*.usersig

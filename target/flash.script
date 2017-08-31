@@ -1,0 +1,15 @@
+
+reset halt
+
+sleep 3
+poll
+flash probe 0
+flash erase_sector 0 0 127
+
+flash write_image sam4s_ek2_0.0.1.bin 0x400000
+verify_image sam4s_ek2_0.0.1.bin 0x400000
+
+#at91sam4 gpnvm clear 2
+#at91sam4 gpnvm set 1
+
+#reset run

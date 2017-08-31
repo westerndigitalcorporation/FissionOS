@@ -1,0 +1,62 @@
+
+<div class="left">
+	<form action="">
+		<fieldset>
+			<legend>
+				Saved Configuration
+			</legend>
+
+			<fieldset>
+				<legend>
+					MAC Address
+				</legend>
+				<center>
+					<input type="text" name="macaddr" id="macaddr"/>
+				</center>
+			</fieldset>
+
+			<fieldset>
+				<legend>
+					DHCP
+				</legend>
+
+				<div class="radioinput">
+					<input type="radio" name="dhcp" value="on" id="dhcpon" checked="checked" onclick="show_hostname(1); show_static_ip(0);"><label for="dhcpon">Enabled</label>
+					<input type="radio" name="dhcp" value="off" id="dhcpoff" onclick="show_hostname(0); show_static_ip(1);"><label for="dhcpoff">Disabled</label>
+				</div>
+				<div class="textinput" id="hostname_config">
+					<label for="hostname">Hostname</label><input type="text" name="hostname" id="hostname"/>
+				</div>
+			</fieldset>
+
+			<fieldset id="static_ip_config">
+				<legend>
+					Static
+				</legend>
+
+				<div class="textinput">
+					<label for="ipaddr">Address</label><input type="text" name="ipaddr" id="ipaddr" />
+				</div>
+				<div class="textinput">
+					<label for="netmask">Netmask</label><input type="text" name="netmask" id="netmask" />
+				</div>
+				<div class="textinput">
+					<label for="gateway">Gateway</label><input type="text" name="gateway" id="gateway" />
+				</div>
+			</fieldset>
+			<center>
+				<input type="button" value="Save Changes" onclick="submit_net_config();" />
+			</center>
+		</fieldset>
+		<center>
+			<div id="save_status">
+			</div>
+		</center>
+	</form>
+</div>
+
+<div class="right">
+	<div class="pre" id="net_config">
+	</div>
+</div>
+

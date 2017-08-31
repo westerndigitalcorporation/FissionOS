@@ -1,0 +1,199 @@
+#
+# SConscript
+#
+# 
+# Copyright (c) 2013-2017 Western Digital Corporation or its affiliates.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 3. The name of the copyright holder nor the names of its contributors may not
+#    be used to endorse or promote products derived from this software without
+#    specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Jeremy Garff <jeremy.garff@sandisk.com>
+#
+
+
+import os
+
+
+Import('targets')
+
+
+cpu_info = {
+#
+#   Target Entry Layout Example
+#
+#   'at91sam4e16' : [               # Target
+#       'cortexm4_at91sam4e',       # Platform environment
+#       'at91sam4e16_flash.ld',     # Linker script
+#       ['at91sam4e16.c'],          # CPU Sources
+#   ],
+
+    'at91sam4e16' : [
+        'at91sam4e',
+        'at91sam4e16_flash.ld',
+        Split('''
+              at91sam4e16.c
+        '''),
+    ],
+
+    'at91sam4sd32c' : [
+        'at91sam4sd',
+        'at91sam4sd32c_flash.ld',
+        Split('''
+              at91sam4sd32c.c
+        '''),
+    ],
+
+    'at91sam4s16c' : [
+        'at91sam4s',
+        'at91sam4s16c_flash.ld',
+        Split('''
+              at91sam4s16c.c
+        '''),
+    ],
+
+    'at91saml21_flash' : [
+        'at91saml21',
+        'at91saml21_flash.ld',
+        [],
+    ],
+
+    'at91saml21_sram' : [
+        'at91saml21',
+        'at91saml21_sram.ld',
+        [],
+    ],
+
+    'imx6' : [
+        'imx6',
+        'imx6_ocram.ld',
+        [],
+    ],
+}
+
+board_info = {
+#
+#   Target Entry Layout Example
+#
+#   'sam4s_ek2' : [                 # Target
+#       cpu_info,                   # CPU info name
+#       ['at91sam4sd32c.c'],        # Additional Sources
+#       [],                         # ROM File objects
+#   ],
+
+    'sam4e_ek' : [
+        'at91sam4e16',              # From CPU info
+        Split('''
+            sam4e_ek/target.c
+            sam4e_ek/swd_bitbang.c
+        '''),
+        Split('''
+            sam4e_ek/romfs/graph.js
+            sam4e_ek/romfs/index.html
+            sam4e_ek/romfs/net.html
+            sam4e_ek/romfs/site.css
+            sam4e_ek/romfs/site.js
+            sam4e_ek/romfs/util.html
+            sam4e_ek/romfs/target.html
+        '''),
+    ],
+
+    'sam4s_ek2' : [
+        'at91sam4sd32c',
+        [],
+        [],
+    ],
+
+    'sam4s_xplained' : [
+        'at91sam4s16c',
+        [],
+        [],
+    ],
+
+    'saml21_xplained_pro_bootloader' : [
+        'at91saml21_flash',
+        Split('''
+              saml21_xplained_pro_bootloader/saml_xmodem.c
+        '''),
+        [],
+    ],
+
+    'saml21_xplained_pro' : [
+        'at91saml21_sram',
+        Split('''
+        '''),
+        [],
+    ],
+
+    'imx6_memtest' : [
+        'imx6',
+        Split('''
+            imx6_memtest/start.S
+        '''),
+        [],
+    ],
+}
+
+
+cpu_objects = {}
+for cpu in cpu_info:
+    platform, linkscript, cpu_sources = cpu_info[cpu]
+    benv = targets[platform]['ENV'].Clone()
+
+    cpu_objects[platform] = []
+    for source in cpu_sources:
+        cpu_objects[platform].append(benv.Object(source))
+
+
+for board in board_info:
+    cpu, board_sources, rom_files = board_info[board]
+    platform, linkscript, cpu_sources = cpu_info[cpu]
+    benv = targets[platform]['ENV'].Clone()
+
+    # Generate board name including version
+    version_str = benv.VersionString(File(board + os.sep + 'version'))
+    board_name = board + "_" + version_str
+
+    # Generate any ROM object source files
+    if len(rom_files):
+        rom_files_c = benv.CGen(board + os.sep + board + "_rom_files.c", rom_files)
+        board_sources.append(rom_files_c)
+
+    # Generate version header
+    version = benv.Version(board + os.sep + board + '_version.h', board + os.sep + 'version')
+    benv['LINKSCRIPT'] = Dir('.').abspath + os.sep + linkscript
+
+    # Build full binary
+    objects = []
+    for source in board_sources:
+        objects.append(benv.Object(source))
+    objects.append(benv.Object(board + os.sep + board + '.c'))  # Add implicit board source
+
+    elf = benv.Elf(board, cpu_objects[platform] + objects + targets[platform]['LIBS'])
+    binary = benv.Bin(board_name, elf)
+
+    # Create signature
+    sig = benv.Usersig(board_name, binary);
+
+    Default([binary, sig])
+

@@ -1,0 +1,126 @@
+#
+# SConscript
+#
+# 
+# Copyright (c) 2013-2017 Western Digital Corporation or its affiliates.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 3. The name of the copyright holder nor the names of its contributors may not
+#    be used to endorse or promote products derived from this software without
+#    specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Jeremy Garff <jeremy.garff@sandisk.com>
+#
+
+
+import SCons
+import os
+
+Import(['targets'])
+
+
+#
+# Environment
+#
+platforms = [
+    'at91sam4e',
+]
+
+for platform in platforms:
+    targets[platform]['ENV'].MergeFlags({
+        'CPPPATH' : [
+            Dir('lwip-1.4.1/src/include').abspath,
+            Dir('lwip-1.4.1/src/include/ipv4').abspath,
+        ],
+        'CFLAGS' : [
+            # Warnings in the lwIP code to hide
+            '-Wno-unused-value',
+            '-Wno-address',
+            # All other warnings should be fatal
+            '-Werror',
+        ],
+    })
+
+targets['at91sam4e']['ENV'].MergeFlags({
+    'CPPPATH' : [
+        Dir('ports/at91sam4e').abspath,
+        Dir('../common').abspath,
+        Dir('../sam4').abspath,
+    ],
+})
+
+
+#
+# lwIP Sources
+#
+lwip_srcs = Split('''
+    lwip-1.4.1/src/core/dhcp.c
+    lwip-1.4.1/src/core/dns.c
+    lwip-1.4.1/src/core/init.c
+    lwip-1.4.1/src/core/mem.c
+    lwip-1.4.1/src/core/memp.c
+    lwip-1.4.1/src/core/netif.c
+    lwip-1.4.1/src/core/pbuf.c
+    lwip-1.4.1/src/core/raw.c
+    lwip-1.4.1/src/core/stats.c
+    lwip-1.4.1/src/core/sys.c
+    lwip-1.4.1/src/core/tcp.c
+    lwip-1.4.1/src/core/tcp_in.c
+    lwip-1.4.1/src/core/tcp_out.c
+    lwip-1.4.1/src/core/udp.c
+    lwip-1.4.1/src/core/timers.c
+
+    lwip-1.4.1/src/api/api_lib.c
+    lwip-1.4.1/src/api/api_msg.c
+    lwip-1.4.1/src/api/err.c
+    lwip-1.4.1/src/api/netbuf.c
+    lwip-1.4.1/src/api/netdb.c
+    lwip-1.4.1/src/api/netifapi.c
+    lwip-1.4.1/src/api/sockets.c
+    lwip-1.4.1/src/api/tcpip.c
+
+    lwip-1.4.1/src/core/ipv4/autoip.c
+    lwip-1.4.1/src/core/ipv4/icmp.c
+    lwip-1.4.1/src/core/ipv4/igmp.c
+    lwip-1.4.1/src/core/ipv4/inet.c
+    lwip-1.4.1/src/core/ipv4/inet_chksum.c
+    lwip-1.4.1/src/core/ipv4/ip.c
+    lwip-1.4.1/src/core/ipv4/ip_addr.c
+    lwip-1.4.1/src/core/ipv4/ip_frag.c
+
+    lwip-1.4.1/src/netif/etharp.c
+''')
+
+platform_sources = {
+    'at91sam4e' : lwip_srcs,
+    'nitro' : lwip_srcs
+}
+
+# The following sets up the liblwip_sam3x.a build
+for platform in platforms:
+    lenv = targets[platform]['ENV']
+    sources = platform_sources[platform] + lenv.Glob('ports/{}/arch/*.c'.format(platform))
+    lib = lenv.StaticLibrary('lwip_' + platform, sources)
+    targets[platform]['LIBS'].append(lib)
+
+Export('targets')
+

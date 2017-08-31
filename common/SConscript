@@ -1,0 +1,90 @@
+#
+# SConscript
+#
+# 
+# Copyright (c) 2013-2017 Western Digital Corporation or its affiliates.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 3. The name of the copyright holder nor the names of its contributors may not
+#    be used to endorse or promote products derived from this software without
+#    specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Jeremy Garff <jeremy.garff@sandisk.com>
+#
+
+
+Import('targets')
+
+
+zynq_sources = Split('''
+    workqueue.c
+''')
+
+common_sources = Split('''
+    syscalls.c
+    workqueue.c
+    mailbox.c
+    semaphore.c
+    console.c
+    config.c
+    crc.c
+    led.c
+    xmodem.c
+''')
+
+sam4e_sources = Split('''
+    ethernetif.c
+    http.c
+    swd_driver.c
+    gdb_stub.c
+''')
+
+saml_sources = Split('''
+    syscalls.c
+    workqueue.c
+    console.c
+    crc.c
+    xmodem.c
+    smbus_master.c
+''')
+
+platforms = [
+    [ 'at91saml21', saml_sources ],
+    [ 'at91samd20', saml_sources ],
+    [ 'at91sam4s', common_sources ],
+    [ 'at91sam4s', common_sources ],
+    [ 'at91sam4sd', common_sources ],
+    [ 'at91sam4e', common_sources + sam4e_sources ],
+    [ 'zynqmp', zynq_sources ],
+]
+
+for key in targets:
+    for platform, sources in platforms:
+        if platform == key:
+            lenv = targets[key]['ENV']
+            lib = lenv.StaticLibrary('common_' + key, sources)
+            targets[key]['LIBS'].append(lib)
+            targets[key]['ENV'].MergeFlags({ 'CPPPATH' : [ Dir('.').abspath ] })
+
+Export('targets')
+
+
