@@ -43,12 +43,35 @@ saml_sources = Split('''
     saml_nvm.c
     saml_reset.c
     saml_i2c.c
+    saml_usb.c
 ''')
 
+samd53_sources = Split('''
+    saml_clocks.c
+    saml_sercom_usart.c
+    saml_usb.c
+    saml_nvm.c
+    saml_tc.c
+    saml_tcc.c
+    saml_adc.c
+    saml_port.c
+''')
+
+samd_sources = Split('''
+    saml_watchdog.c
+    saml_clocks.c
+    saml_port.c
+    saml_tc.c
+    saml_sercom_usart.c
+    saml_reset.c
+    saml_i2c.c
+    saml_nvm.c
+''')
 
 platforms = [
     [ 'at91saml21', saml_sources ],
-    [ 'at91samd20', saml_sources ],
+    [ 'at91samd20', samd_sources ],
+    [ 'atsamd53', samd53_sources ],
 ]
 
 

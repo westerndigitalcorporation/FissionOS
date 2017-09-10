@@ -36,7 +36,7 @@
 #ifndef __SAM4S_TWI_H__
 #define __SAM4S_TWI_H__
 
-#include "console.h"
+#include <console.h>
 
 
 #define CONSOLE_CMD_TWI                          \
@@ -221,7 +221,7 @@ void twi_master_wait(twi_drv_t *twi);
 
 void twi_slave_send(twi_drv_t *twi, uint8_t data);
 
-int cmd_twi(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_twi(console_t *console, int argc, char *argv[]);
 
 #endif /* __SAM4S_I2C_H__ */
 

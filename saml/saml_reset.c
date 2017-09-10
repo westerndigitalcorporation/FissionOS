@@ -43,11 +43,11 @@
 #include "saml_reset.h"
 
 
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[])
+int cmd_reset(console_t *console, int argc, char *argv[])
 {
     if (argc < 2)
     {
-        cmd_help_usage(uart, argv[0]);
+        cmd_help_usage(console, argv[0]);
         return 0;
     }
 
@@ -74,7 +74,7 @@ int cmd_reset(uart_drv_t *uart, int argc, char *argv[])
             }
         }
 
-        console_print("Reset Reason: %s\r\n", reason);
+        console_print(console, "Reset Reason: %s\r\n", reason);
 
         return 0;
     }
@@ -95,7 +95,7 @@ int cmd_reset(uart_drv_t *uart, int argc, char *argv[])
         return 0;
     }
 
-    cmd_help_usage(uart, argv[0]);
+    cmd_help_usage(console, argv[0]);
 
     return 0;
 }

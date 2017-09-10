@@ -37,6 +37,9 @@
 #define __SAM4_TC_H__
 
 
+#include <console.h>
+
+
 #define SAM4_MAX_CHANNELS                        3
 
 typedef struct tc_channel
@@ -201,7 +204,7 @@ typedef struct tc_drv {
 int tc_init(tc_drv_t *dev);
 int tc_capture_freq(tc_drv_t *dev);
 
-int cmd_tc(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_tc(console_t *console, int argc, char *argv[]);
 
 
 #endif /* __SAM4_TC_H__ */

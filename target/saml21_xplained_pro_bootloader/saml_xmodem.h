@@ -49,7 +49,7 @@
     }
 
 
-int cmd_xmodem(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_xmodem(console_t *console, int argc, char *argv[]);
 
 
 #endif /* __SAML_XMODEM_H__ */

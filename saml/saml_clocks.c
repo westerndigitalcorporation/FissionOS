@@ -35,36 +35,39 @@
 
 #include <stdint.h>
 
+#include "saml_arch.h"
 #include "saml_clocks.h"
 
 
-#ifdef __AT91SAML21__
+#if defined(__AT91SAML21__) || defined(__ATSAMD53__)
 
 void gclk_setup(uint8_t clknum, uint8_t src, uint16_t div)
 {
     volatile gclk_t *gclk = GCLK;
+    uint32_t tmp = GCLK_GENCTRL_GENEN |
+                   GCLK_GENCTRL_OE |
+                   GCLK_GENCTRL_DIV(div) |
+                   src;
 
-    gclk->genctrl[clknum] = GCLK_GENCTRL_GENEN |
-                            GCLK_GENCTRL_OE |
-                            GCLK_GENCTRL_DIV(div) |
-                            src;
+    write32(&gclk->genctrl[clknum], tmp);
 }
 
 void gclk_peripheral_enable(uint8_t clknum, uint8_t peripheral)
 {
     volatile gclk_t *gclk = GCLK;
 
-    gclk->pchctrl[peripheral] = GCLK_PCHCTRL_GEN(clknum) | GCLK_PCHCTRL_CHEN;
+    write32(&gclk->pchctrl[peripheral],
+            GCLK_PCHCTRL_GEN(clknum) | GCLK_PCHCTRL_CHEN);
 }
 
 void gclk_peripheral_disable(uint8_t clknum, uint8_t peripheral)
 {
     volatile gclk_t *gclk = GCLK;
 
-    gclk->pchctrl[peripheral] &= ~GCLK_PCHCTRL_CHEN;
+    write32(&gclk->pchctrl[peripheral], 0);
 }
 
-#endif /* __AT91SAML21__ */
+#endif /* __AT91SAML21__ || __ATSAMD53__*/
 
 
 #ifdef __AT91SAMD20__

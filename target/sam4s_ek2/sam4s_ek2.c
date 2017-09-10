@@ -64,12 +64,13 @@
 #define LED1_PORT                                GPIOA
 #define LED1_PIN                                 (1 << 20)
 
+console_t console;
 /*
  * Command callbacks
  */
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_twi_test(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_pmp(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_reset(console_t *console, int argc, char *argv[]);
+int cmd_twi_test(console_t *console, int argc, char *argv[]);
+int cmd_pmp(console_t *console, int argc, char *argv[]);
 cmd_entry_t cmd_table[] =
 {
     {
@@ -198,9 +199,16 @@ int main(int argc, char *argv[])
     clock_peripheral_start(PERIPHERAL_ID_PIOB);
     clock_peripheral_start(PERIPHERAL_ID_PIOC);
 
-    console_init(&console_uart, cmd_table, ARRAY_SIZE(cmd_table),
-                 CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN,
-                 CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN, 0);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN, 0);
+    uart_console(&console, &console_uart);
+
+    console_init(&console, cmd_table, ARRAY_SIZE(cmd_table),
+                 (console_send_t)uart_send_wait, 
+                 (console_recv_t)uart_recv,
+                 &console_uart);
 
     // RED LED
     LED_INIT(LED0_PORT, LED0_PIN);
@@ -218,10 +226,10 @@ int main(int argc, char *argv[])
     pwm_enable(led_throbber);
     led_handle_work(NULL);
 
-    console_print("\r\nSAM4S-EK2 Ver %d.%d.%d\r\n",
+    console_print(&console, "\r\nSAM4S-EK2 Ver %d.%d.%d\r\n",
                   VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-    console_print("Running Bank %d\r\n", eefc_boot_bank());
-    console_prompt();
+    console_print(&console, "Running Bank %d\r\n", eefc_boot_bank());
+    console_prompt(&console);
 
     while (1)
     {

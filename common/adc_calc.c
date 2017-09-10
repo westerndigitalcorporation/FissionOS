@@ -36,10 +36,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "sam4_adc.h"
-
-
 #if defined(__AT91SAM4S__)
+#include "sam4_adc.h"
+#endif
+
+#if defined(__ATSAMD53__)
+#include "saml_adc.h"
+#endif
+
+
+#if defined(__AT91SAM4S__) || defined(__ATSAMD53__)
 
 /**
  * Compute the temperature in 1/10 deg C given a sample, and a table of samples

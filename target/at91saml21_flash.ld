@@ -32,7 +32,7 @@ SECTIONS
 	KEEP(*(.sram_function))
         _edata = .;
 	PROVIDE(__data_end = .);
-    } > lpsram
+    } > sram
 
     .bss :
     {
@@ -41,18 +41,18 @@ SECTIONS
 	 *(.bss*)
 	 *(COMMON)
 	 __bss_end = .;
-    } > lpsram
+    } > sram
 
     .stacks :
     {
 	 . = ALIGN(8);
-	 . += 1K;
+	 . += 4K;
 	 __exception_stack = .;
-	 . += 1K;
+	 . += 4K;
 	 __main_stack = .;
 	 . = ALIGN(8);
 	 __heap_start = .;
-    } > lpsram
+    } > sram
 
 }
 end = .;

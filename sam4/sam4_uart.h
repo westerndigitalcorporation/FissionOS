@@ -35,6 +35,8 @@
 #ifndef __SAM4S_UART_H__
 #define __SAM4S_UART_H__
 
+#include <console.h>
+
 typedef struct uart
 {
     uint32_t cr;
@@ -120,5 +122,6 @@ int uart_init(uart_drv_t *uart);
 void uart_send_wait(uart_drv_t *uart, char *data, uint32_t len);
 int uart_send(uart_drv_t *uart, char *data, uint32_t len);
 int uart_recv(uart_drv_t *uart, uint8_t *data, int maxlen);
+void uart_console(console_t *console, uart_drv_t *uart);
 
 #endif /* __SAM4S_UART_H__ */

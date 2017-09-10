@@ -36,8 +36,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <console.h>
 #include "flash.h"
-#include "console.h"
 
 
 #define CONSOLE_CMD_CONFIG                       \
@@ -69,6 +69,6 @@ void config_new(config_desc_t *config);
 void config_image_switch(void);
 int config_image_update(uint32_t boot_bank, uint32_t image_len, uint32_t image_crc);
 
-int cmd_config(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_config(console_t *console, int argc, char *argv[]);
 
 #endif /* __CONFIG_H__ */

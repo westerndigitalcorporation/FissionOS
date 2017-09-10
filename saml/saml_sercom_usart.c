@@ -44,14 +44,14 @@
 // be pruned appropriately by the linker to save memory.
 static uart_drv_t *uart_drv[SERCOM_COUNT];
 
-#ifdef __AT91SAML21__
+#if defined(__AT91SAML21__) || defined(__ATSAMD53__)
 void syncbusy_wait(sercom_usart_t *usart)
 {
     while (usart->syncbusy)
         ;
 }
 #endif /* __AT91SAML21__ */
-#ifdef __AT91SAMD20__
+#ifdef __AT91SAMD20__ 
 void syncbusy_wait(sercom_usart_t *usart)
 {
     while (usart->status & SERCOM_USART_STATUS_SYNCBUSY)
@@ -122,8 +122,63 @@ static void sercom_usart5_int_handler(void)
     sercom_usart_int_handler(uart_drv[5]);
 }
 
+#ifdef __ATSAMD53__
+static void sercom_usart6_int_handler(void)
+{
+    sercom_usart_int_handler(uart_drv[6]);
+}
 
-void sercom_usart_async_init(uart_drv_t *uart, uint8_t peripheral_id,
+static void sercom_usart7_int_handler(void)
+{
+    sercom_usart_int_handler(uart_drv[7]);
+}
+#endif /* __ATSAMD53__ */
+
+
+typedef struct
+{
+    volatile sercom_usart_t *usart;
+    void (*vector)(void);
+} uart_map_t;
+
+const uart_map_t uart_map[] = {
+    {
+        SERCOM0_USART,
+        sercom_usart0_int_handler,
+    },
+    {
+        SERCOM1_USART,
+        sercom_usart1_int_handler,
+    },
+    {
+        SERCOM2_USART,
+        sercom_usart2_int_handler,
+    },
+    {
+        SERCOM3_USART,
+        sercom_usart3_int_handler,
+    },
+    {
+        SERCOM4_USART,
+        sercom_usart4_int_handler,
+    },
+    {
+        SERCOM5_USART,
+        sercom_usart5_int_handler,
+    },
+#ifdef __ATSAMD53__
+    {
+        SERCOM6_USART,
+        sercom_usart6_int_handler,
+    },
+    {
+        SERCOM7_USART,
+        sercom_usart7_int_handler,
+    },
+#endif /* __ATSAMD53__ */
+};
+void sercom_usart_async_init(int devnum, uart_drv_t *uart,
+                             uint8_t peripheral_id,
                              uint32_t clockrate, uint32_t baudrate,
                              uint32_t chsize, uint32_t sbmode,
                              uint32_t form, uint32_t pmode,
@@ -135,42 +190,13 @@ void sercom_usart_async_init(uart_drv_t *uart, uint8_t peripheral_id,
                      SERCOM_USART_CTRLA_DORD_LSB |
                      SERCOM_USART_CTRLA_CMODE_ASYNC |
                      txpo | rxpo | form;
-    volatile sercom_usart_t *usart;
-    void (*vector)(void);
+    volatile sercom_usart_t *usart = uart_map[devnum].usart;
+#ifdef __ATSAMD53__
+    int i;
+#endif /* __ATSAMD53__ */
 
-    switch (peripheral_id)
-    {
-        case PERIPHERAL_ID_SERCOM0:
-            usart = SERCOM0_USART;
-            vector = sercom_usart0_int_handler;
-            break;
-        case PERIPHERAL_ID_SERCOM1:
-            usart = SERCOM1_USART;
-            vector = sercom_usart1_int_handler;
-            break;
-        case PERIPHERAL_ID_SERCOM2:
-            usart = SERCOM2_USART;
-            vector = sercom_usart2_int_handler;
-            break;
-        case PERIPHERAL_ID_SERCOM3:
-            usart = SERCOM3_USART;
-            vector = sercom_usart3_int_handler;
-            break;
-        case PERIPHERAL_ID_SERCOM4:
-            usart = SERCOM4_USART;
-            vector = sercom_usart4_int_handler;
-            break;
-        case PERIPHERAL_ID_SERCOM5:
-            usart = SERCOM5_USART;
-            vector = sercom_usart5_int_handler;
-            break;
-
-        default:
-            return;
-    }
-    uart_drv[peripheral_id - PERIPHERAL_ID_SERCOM0] = uart;
-
-    uart->dev = usart;
+    uart_drv[devnum] = uart;
+    uart->dev = uart_map[devnum].usart;
 
     usart->ctrla = SERCOM_USART_CTRLA_SWRST;
     syncbusy_wait(usart);
@@ -191,8 +217,16 @@ void sercom_usart_async_init(uart_drv_t *uart, uint8_t peripheral_id,
     usart->ctrla |= SERCOM_USART_CTRLA_ENABLE;
     syncbusy_wait(usart);
 
-    nvic_callback_set(peripheral_id, vector);
+#ifdef __ATSAMD53__
+    for (i = 0 ; i < PERIPHERAL_ID_SERCOM_INTS; i++)
+    {
+        nvic_callback_set(peripheral_id + i, uart_map[devnum].vector);
+        nvic_enable(peripheral_id + i);
+    }
+#else /* __ATSAMD53__ */
+    nvic_callback_set(peripheral_id, uart_map[devnum].vector);
     nvic_enable(peripheral_id);
+#endif /* __ATSAMD53__ */
 }
 
 void sercom_usart_disable(volatile sercom_usart_t *usart)
@@ -240,6 +274,17 @@ int uart_recv(uart_drv_t *uart, uint8_t *data, int maxlen)
     irq_restore(irqstate);
 
     return len;
+}
+
+static void uart_console_rx_callback(uart_drv_t *uart, void *arg)
+{
+    console_rx_schedule((console_t *)arg);
+}
+
+void uart_console(console_t *console, uart_drv_t *uart)
+{
+    uart->rx_cb = uart_console_rx_callback;
+    uart->rx_arg = console;
 }
 
 

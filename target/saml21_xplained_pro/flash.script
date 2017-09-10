@@ -1,0 +1,11 @@
+
+reset halt
+
+sleep 3
+poll
+flash probe 0
+flash erase_sector 0 0 15
+
+flash write_image ../saml21_xplained_pro_0.0.1.bin 0x00000000
+verify_image ../saml21_xplained_pro_0.0.1.bin 0x00000000
+

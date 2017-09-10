@@ -227,7 +227,7 @@ static inline gmac_drv_t *netif_to_gmac(struct netif *nif)
 int gmac_link_change_handle(void);
 void gmac_init(gmac_drv_t *gmac, uint8_t *mac_addr, uint8_t phy_addr,
                uint8_t *txpool, uint8_t *rxpool);
-int cmd_eth(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_eth(console_t *console, int argc, char *argv[]);
 
 struct pbuf *gmac_rx(struct netif *netif);
 err_t gmac_tx(struct netif *netif, struct pbuf *p);

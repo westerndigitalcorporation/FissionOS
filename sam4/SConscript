@@ -37,7 +37,6 @@ Import('targets')
 sam4_sources = Split('''
     sam4_ac.c
     sam4_adc.c
-    sam4_adc_calc.c
     sam4_dac.c
     sam4_flash.c
     sam4_clock.c

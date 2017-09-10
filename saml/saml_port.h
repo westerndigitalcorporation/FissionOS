@@ -91,6 +91,9 @@ typedef struct port
 #if defined(__AT91SAMD20__)
 #define PORT_BASE                                0x41004400
 #endif /* __AT91SAMD20__ */
+#if defined(__ATSAMD53__)
+#define PORT_BASE                                0x41008000
+#endif /* __AT91SAMD53 */
 #define PORT_OFFSET                              0x80
 
 #define PORTA                                    ((volatile port_t *)(PORT_BASE + (PORT_OFFSET * 0)))
@@ -238,9 +241,17 @@ typedef struct eic
 #define EIC_CONFIG_SENSE_MASK(n)                 (0x7 << (n << 2))
 #define EIC_CONFIG_SENSE(n, val)                 (((val) & 0x7) << (n << 2))
 #define EIC_CONFIG_FILT(n)                       ((1 << 3) << (n << 2))
+    uint32_t resvd_0x24[3];
+    uint32_t debouncen;
+    uint32_t dprescaler;
+    uint32_t pinstate;
 } __attribute__ ((packed)) eic_t;
 
+#ifdef __ATSAMD53__
+#define EIC_BASE                                 0x40002800
+#else  /* __ATSAMD53__ */
 #define EIC_BASE                                 0x40002400
+#endif /* __ATSAMD53__ */
 #define EIC                                      ((volatile eic_t *)EIC_BASE)
 
 

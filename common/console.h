@@ -35,11 +35,6 @@
 #ifndef __CONSOLE_H__
 #define __CONSOLE_H__
 
-#if !defined(__AT91SAML21__) && !defined(__AT91SAMD20__)
-#include "sam4_gpio.h"
-#endif /* __AT91SAML21__ */
-
-
 #include "workqueue.h"
 
 #ifndef ARRAY_SIZE
@@ -59,7 +54,8 @@
             "    command : Command help to display\r\n", \
     }
 
-typedef int (*cmd_callback_t)(uart_drv_t *uart, int argc, char *argv[]);
+struct console;
+typedef int (*cmd_callback_t)(struct console *console, int argc, char *argv[]);
 typedef struct cmd_entry
 {
     char *cmdstr;
@@ -68,9 +64,12 @@ typedef struct cmd_entry
     cmd_callback_t callback;
 } cmd_entry_t;
 
-typedef struct cmdline
+typedef int (*console_send_t)(void *arg, char *buf, int buflen);
+typedef int (*console_recv_t)(void *arg, char *buf, int buflen);
+typedef struct console
 {
-    uart_drv_t *uart;
+    cmd_entry_t *cmd_table;
+    int cmd_table_len;
     char prev[CMDLINE_SIZE];
     char buffer[CMDLINE_SIZE];
     int offset;
@@ -78,25 +77,21 @@ typedef struct cmdline
 #define CMDLINE_STATE_NOESCAPE      0
 #define CMDLINE_STATE_ESCAPE        1
 #define CMDLINE_STATE_CMD           2
-} cmdline_t;
+    workqueue_t wq;
+    console_send_t send;
+    console_recv_t recv;
+    void *arg;
+} console_t;
 
-void console_prompt(void);
-void console_print(char *format, ...);
-int cmd_help(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_help_usage(uart_drv_t *uart, char *command);
+void console_prompt(console_t *console);
+void console_print(console_t *console, char *format, ...);
+int cmd_help(console_t *console, int argc, char *argv[]);
+int cmd_help_usage(console_t *console, char *command);
+void console_rx_schedule(console_t *console);
 
-#if !defined(__AT91SAML21__) && !defined(__AT91SAMD20__)
-void console_init(uart_drv_t *uart, cmd_entry_t *table, int table_len,
-                  volatile gpio_regs_t *tx_port, int tx_pin,
-                  volatile gpio_regs_t *rx_port, int rx_pin);
-#else /* __AT91SAML21__ */
-// TODO:  Make this the new more portable interface for the 4S
-void console_init(uart_drv_t *uart, cmd_entry_t *table, int table_len);
-#endif /* __AT91SAML21__ */
+void console_init(console_t *console, cmd_entry_t *table, int table_len,
+                  console_send_t send, console_recv_t recv, void *arg);
 
-// The following are only required if a command issued from the console needs to take
-// direct control (xmodem).
-extern workqueue_t console_work;
 extern void console_work_handler(void *arg);
 
 #endif

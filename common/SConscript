@@ -49,6 +49,9 @@ common_sources = Split('''
     crc.c
     led.c
     xmodem.c
+    usb_control0.c
+    usb_serial.c
+    adc_calc.c
 ''')
 
 sam4e_sources = Split('''
@@ -65,11 +68,15 @@ saml_sources = Split('''
     crc.c
     xmodem.c
     smbus_master.c
+    usb_control0.c
+    usb_serial.c
+    adc_calc.c
 ''')
 
 platforms = [
     [ 'at91saml21', saml_sources ],
     [ 'at91samd20', saml_sources ],
+    [ 'atsamd53', saml_sources ],
     [ 'at91sam4s', common_sources ],
     [ 'at91sam4s', common_sources ],
     [ 'at91sam4sd', common_sources ],

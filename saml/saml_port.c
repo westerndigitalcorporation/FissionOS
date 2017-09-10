@@ -78,12 +78,26 @@ void eic_int_setup(uint8_t intnum, ext_int_t *ext_int, uint8_t sense_type)
 void eic_enable(void)
 {
     volatile eic_t *eic = EIC;
+#if defined(__ATSAMD53__)
+    int i;
+#endif /* __ATSAMD53__ */
 
     eic->ctrla = EIC_CTRLA_ENABLE;
     while (eic->syncbusy)
         ;
 
+#if defined(__ATSAMD53__)
+    for (i = 0; i < EIC_INTS_MAX; i++)
+    {
+        if (ext_ints[i])
+        {
+            nvic_callback_set(PERIPHERAL_ID_EXTINT0 + i, eic_int_handler);
+            nvic_enable(PERIPHERAL_ID_EXTINT0 + i);
+        }
+    }
+#else /* __ATSAMD53__ */
     nvic_callback_set(PERIPHERAL_ID_EIC, eic_int_handler);
     nvic_enable(PERIPHERAL_ID_EIC);
+#endif /* __ATSAMD53__ */
 }
 

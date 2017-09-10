@@ -36,7 +36,8 @@
 #ifndef __SAM4S_FLASH_H__
 #define __SAM4S_FLASH_H__
 
-#include "sam4_uart.h"
+#include <console.h>
+
 #include "sam4_eefc.h"
 
 typedef struct eefc_desc
@@ -74,7 +75,7 @@ static inline int eefc_boot_bank(void)
 int eefc_4k_erase(volatile eefc_t *eefc, uint32_t start_addr);
 int eefc_write_page(volatile eefc_t *eefc, uint32_t addr, char *buffer);
 
-int cmd_flash(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_flash(console_t *console, int argc, char *argv[]);
 
 
 #endif  /* __SAM4S_FLASH_H__ */

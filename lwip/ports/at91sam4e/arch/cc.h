@@ -55,15 +55,17 @@
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_END
 
+#ifndef BYTE_ORDER
 #define BYTE_ORDER                               LITTLE_ENDIAN
+#endif /* BYTE_ORDER */
 
-void console_print(char *fmt, ...);
+void debug_print(char *fmt, ...);
 
-#define LWIP_PLATFORM_DIAG(y)                    console_print y
+#define LWIP_PLATFORM_DIAG(y)                    debug_print y
 
 #define LWIP_PLATFORM_ASSERT(y) \
 	do { \
-        console_print(y); \
+        debug_print(y); \
         while(1);         \
 	} while(0)
 

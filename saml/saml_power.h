@@ -36,6 +36,7 @@
 #ifndef __SAML_POWER_H__
 #define __SAML_POWER_H__
 
+#if defined(__AT91SAML21__)
 typedef struct pm
 {
     uint8_t  ctrla;
@@ -66,6 +67,7 @@ typedef struct pm
 #define PM_BASE                                  0x40000000
 #define PM                                       ((volatile pm_t *)PM_BASE)
 
+#endif /* __AT91SAML21__ */
 
 typedef struct supc
 {
@@ -141,9 +143,18 @@ typedef struct supc
     uint32_t vref;
 #define SUPC_VREF_TSEN                           (1 << 1)
 #define SUPC_VREF_VREFOE                         (1 << 2)
+#define SUPC_VREF_TSSEL                          (1 << 3)
 #define SUPC_VREF_RUNSTDBY                       (1 << 6)
 #define SUPC_VREF_ONDEMAND                       (1 << 7)
 #define SUPC_VREF_SEL(val)                       (((val) & 0xf) << 16)
+#define SUPC_VREF_SEL_1V0                        (0x0 << 16)
+#define SUPC_VREF_SEL_1V1                        (0x1 << 16)
+#define SUPC_VREF_SEL_1V2                        (0x2 << 16)
+#define SUPC_VREF_SEL_1V25                       (0x3 << 16)
+#define SUPC_VREF_SEL_2V0                        (0x4 << 16)
+#define SUPC_VREF_SEL_2V2                        (0x5 << 16)
+#define SUPC_VREF_SEL_2V4                        (0x6 << 16)
+#define SUPC_VREF_SEL_2V5                        (0x7 << 16)
     uint32_t bbps;
 #define SUPC_BBPS_CONF(val)                      (((val) & 0x3) << 0)
 #define SUPC_BBPS_WAKEEN                         (1 << 2)
@@ -157,8 +168,14 @@ typedef struct supc
 #define SUPC_BKIN_BKIN(val)                      (((val) & 0x7) << 0)
 } __attribute__ ((packed)) supc_t;
 
+#if defined(__AT91SAML21__)
 #define SUPC_BASE                                0x40001400
-#define SUPC                                     ((volatile supc_t *)SUPC_BASE)
+#endif
 
+#if defined(__ATSAMD53__)
+#define SUPC_BASE                                0x40001800
+#endif
+
+#define SUPC                                     ((volatile supc_t *)SUPC_BASE)
 
 #endif /* __SAML_POWER_H__ */

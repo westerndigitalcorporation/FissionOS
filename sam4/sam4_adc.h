@@ -39,6 +39,7 @@
 
 #include "sam4_pdc.h"
 
+#include "adc_calc.h"
 
 #define CONSOLE_CMD_ADC                          \
     {                                            \
@@ -123,45 +124,6 @@ typedef struct adc
 
 #define ADC_AVERAGE_SAMPLES                       512
 
-typedef struct adc_calc_temp_t
-{
-    int32_t offset;
-    uint16_t *table;
-    uint16_t table_size;
-} adc_calc_temp_t;
-
-typedef struct adc_calc_current_lt6105
-{
-    uint32_t mvref;
-    int32_t offset;
-    uint32_t rin;
-    uint32_t rout;
-    uint32_t rsense_mohms;
-} adc_calc_current_lt6105_t;
-
-typedef struct adc_calc_current_ltc6102
-{
-    uint32_t mvref;
-    int32_t offset;
-    uint32_t rin_mohms;
-    uint32_t rout;
-    uint32_t rsense_mohms;
-} adc_calc_current_ltc6102_t;
-
-typedef struct adc_calc_voltage_direct
-{
-    uint32_t mvref;
-    int32_t offset;
-} adc_calc_voltage_direct_t;
-
-typedef struct adc_calc_voltage_divider
-{
-    uint32_t mvref;
-    uint32_t r1;
-    uint32_t r2;
-    int32_t offset;
-} adc_calc_voltage_divider_t;
-
 
 struct adc_drv;
 typedef void (*adc_calc_callback_t)(struct adc_drv *adc, uint32_t *value,
@@ -196,23 +158,6 @@ typedef struct adc_queue_entry
 void adc_init(void);
 int adc_start(adc_queue_entry_t *entry);
 int adc_finished(adc_queue_entry_t *entry);
-
-/* Calculation Handlers */
-void adc_calc_temp_12bit_unsigned(adc_drv_t *drv, uint32_t *value,
-                                  uint64_t total, uint32_t min,
-                                  uint32_t max, uint64_t count, void *arg);
-void adc_calc_divider_12bit_unsigned(adc_drv_t *drv, uint32_t *value,
-                                     uint64_t total, uint32_t min,
-                                     uint32_t max, uint64_t count, void *arg);
-void adc_calc_direct_12bit_unsigned(adc_drv_t *drv, uint32_t *value,
-                                    uint64_t total, uint32_t min,
-                                    uint32_t max, uint64_t count, void *arg);
-void adc_calc_lt6105_12bit_unsigned(adc_drv_t *drv, uint32_t *value,
-                                    uint64_t total, uint32_t min,
-                                    uint32_t max, uint64_t count, void *arg);
-void adc_calc_ltc6102_12bit_unsigned(adc_drv_t *drv, uint32_t *value,
-                                    uint64_t total, uint32_t min,
-                                    uint32_t max, uint64_t count, void *arg);
 
 #endif /*  defined(__AT91SAM4S__) */
 

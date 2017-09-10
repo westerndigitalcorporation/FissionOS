@@ -636,6 +636,452 @@ typedef struct sysctrl
 
 #endif /* __AT91SAMD20__ */
 
+#ifdef __ATSAMD53__
+
+#define GCLK_DFLL48M_REF                         0
+#define GCLK_FDPLL0                              1
+#define GCLK_FDPLL1                              2
+#define GCLK_SLOW                                3
+#define GCLK_EIC                                 4
+#define GCLK_FREQM_MSR                           5
+#define GCLK_FREQM_REF                           6
+#define GCLK_SERCOM0_CORE                        7
+#define GCLK_SERCOM1_CORE                        8
+#define GCLK_TC0_1                               9
+#define GCLK_USB                                 10
+#define GCLK_EVSYS0                              11
+#define GCLK_EVSYS1                              12
+#define GCLK_EVSYS2                              13
+#define GCLK_EVSYS3                              14
+#define GCLK_EVSYS4                              15
+#define GCLK_EVSYS5                              16
+#define GCLK_EVSYS6                              17
+#define GCLK_EVSYS7                              18
+#define GCLK_EVSYS8                              19
+#define GCLK_EVSYS9                              20 
+#define GCLK_EVSYS10                             21
+#define GCLK_EVSYS11                             22
+#define GCLK_SERCOM2_CORE                        23
+#define GCLK_SERCOM3_CORE                        24
+#define GCLK_TCC0_1                              25
+#define GCLK_TC2_3                               26
+#define GCLK_CAN0                                27
+#define GCLK_CAN1                                28
+#define GCLK_TCC2_3                              29
+#define GCLK_TC4_5                               30
+#define GCLK_PDEC                                31
+#define GCLK_AC                                  32
+#define GCLK_CCL                                 33
+#define GCLK_SERCOM4_CORE                        34
+#define GCLK_SERCOM5_CORE                        35
+#define GCLK_SERCOM6_CORE                        36
+#define GCLK_SERCOM7_CORE                        37
+#define GCLK_TCC4                                38
+#define GCLK_TC6_7                               39
+#define GCLK_ADC0                                40
+#define GCLK_ADC1                                41
+#define GCLK_DAC                                 42
+#define GCLK_I2S0                                43
+#define GCLK_I2S1                                44
+#define GCLK_SDHC0                               45
+#define GCLK_SDHC1                               46
+#define GCLK_CM4_TRACE                           47
+
+
+typedef struct gclk
+{
+    uint8_t  ctrla;
+#define GCLK_CTRLA_SWRST                         (1 << 0)
+    uint8_t  resvd_0x1[3];
+    uint32_t syncbusy;
+#define GCLK_SYNCBUSY_SWRST                      (1 << 0)
+#define GCLK_SYNCBUSY_GENCTRL(val)               ((val & 0x1) << 2)
+    uint32_t resvd_0x8[6];
+    uint32_t genctrl[12];
+#define GCLK_GENCTRL_SRC(val)                    ((val & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_XOSC0                   ((0x0 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_XOSC1                   ((0x1 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_GCLK_IN                 ((0x2 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_GCLK_GEN1               ((0x3 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_OSCULP32K               ((0x4 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_XOSC32K                 ((0x5 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_DFLL                    ((0x6 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_DPLL0                   ((0x7 & 0x1f) << 0)
+#define GCLK_GENCTRL_SRC_DPLL1                   ((0x8 & 0x1f) << 0)
+#define GCLK_GENCTRL_GENEN                       (1 << 8)
+#define GCLK_GENCTRL_IDC                         (1 << 9)
+#define GCLK_GENCTRL_OOV                         (1 << 10)
+#define GCLK_GENCTRL_OE                          (1 << 11)
+#define GCLK_GENCTRL_DIVSEL                      (1 << 12)
+#define GCLK_GENCTRL_RUNSTDBY                    (1 << 13)
+#define GCLK_GENCTRL_DIV(val)                    ((val & 0xffff) << 16)
+    uint32_t resvd_0x50[12];
+    uint32_t pchctrl[48];
+#define GCLK_PCHCTRL_GEN(val)                    ((val & 0xf) << 0)
+#define GCLK_PCHCTRL_CHEN                        (1 << 6)
+#define GCLK_PCHCTRL_WRTLOCK                     (1 << 7)
+} __attribute__((packed)) gclk_t;
+
+#define GCLK_BASE                                0x40001c00
+#define GCLK                                     ((volatile gclk_t *)GCLK_BASE)
+
+
+typedef struct mclk
+{
+    uint8_t ctrla;
+    uint8_t intenclr;
+#define MCLK_INTENCLR_CKRDY                      (1 << 0)
+    uint8_t intenset;
+#define MCLK_INTENSET_CKRDY                      (1 << 0)
+    uint8_t intflag;
+#define MCLK_INTENFLAG_CKRDY                     (1 << 0)
+    uint8_t hsdiv;
+    uint8_t cpudiv;
+    uint8_t resvd_0x06[10];
+    uint32_t ahbmask;
+#define MCLK_AHBMASK_HPBn0                       (1 << 0)
+#define MCLK_AHBMASK_HPBn1                       (1 << 1)
+#define MCLK_AHBMASK_HPBn2                       (1 << 2)
+#define MCLK_AHBMASK_HPBn3                       (1 << 3)
+#define MCLK_AHBMASK_DSU                         (1 << 4)
+#define MCLK_AHBMASK_NVMCTRL                     (1 << 6)
+#define MCLK_AHBMASK_CMCC                        (1 << 8)
+#define MCLK_AHBMASK_DMAC                        (1 << 9)
+#define MCLK_AHBMASK_USB                         (1 << 10)
+#define MCLK_AHBMASK_PAC                         (1 << 12)
+#define MCLK_AHBMASK_QSPI                        (1 << 13)
+#define MCLK_AHBMASK_GMAC                        (1 << 14)
+#define MCLK_AHBMASK_SDHCn0                      (1 << 15)
+#define MCLK_AHBMASK_SDHCn1                      (1 << 16)
+#define MCLK_AHBMASK_CANn0                       (1 << 17)
+#define MCLK_AHBMASK_CANn1                       (1 << 18)
+#define MCLK_AHBMASK_ICM                         (1 << 19)
+#define MCLK_AHBMASK_PUKCC                       (1 << 20)
+#define MCLK_AHBMASK_QSPI2X                      (1 << 21)
+#define MCLK_AHBMASK_NVMCTRL_SMEEPROM            (1 << 22)
+#define MCLK_AHBMASK_NVMCTRL_CACHE               (1 << 23)
+    uint32_t apbamask;
+#define MCLK_APBAMASK_PAC                        (1 << 0)
+#define MCLK_APBAMASK_PM                         (1 << 1)
+#define MCLK_APBAMASK_MCLK                       (1 << 2)
+#define MCLK_APBAMASK_RSTC                       (1 << 3)
+#define MCLK_APBAMASK_OSCCTRL                    (1 << 4)
+#define MCLK_APBAMASK_OSC32KCTRL                 (1 << 5)
+#define MCLK_APBAMASK_SUPC                       (1 << 6)
+#define MCLK_APBAMASK_GCLK                       (1 << 7)
+#define MCLK_APBAMASK_WDT                        (1 << 8)
+#define MCLK_APBAMASK_RTC                        (1 << 9)
+#define MCLK_APBAMASK_EIC                        (1 << 10)
+#define MCLK_APBAMASK_FREQM                      (1 << 11)
+#define MCLK_APBAMASK_SERCOM0                    (1 << 12)
+#define MCLK_APBAMASK_SERCOM1                    (1 << 13)
+#define MCLK_APBAMASK_TC0                        (1 << 14)
+#define MCLK_APBAMASK_TC1                        (1 << 15)
+    uint32_t apbbmask;
+#define MCLK_APBBMASK_USB                        (1 << 0)
+#define MCLK_APBBMASK_DSU                        (1 << 1)
+#define MCLK_APBBMASK_NVMCTRL                    (1 << 2)
+#define MCLK_APBBMASK_PORT                       (1 << 4)
+#define MCLK_APBBMASK_EVSYS                      (1 << 7)
+#define MCLK_APBBMASK_SERCOM2                    (1 << 9)
+#define MCLK_APBBMASK_SERCOM3                    (1 << 10)
+#define MCLK_APBBMASK_TCC0                       (1 << 11)
+#define MCLK_APBBMASK_TCC1                       (1 << 12)
+#define MCLK_APBBMASK_TC2                        (1 << 13)
+#define MCLK_APBBMASK_TC3                        (1 << 14)
+    uint32_t apbcmask;
+#define MCLK_APBCMASK_GMAC                       (1 << 2)
+#define MCLK_APBCMASK_TCC2                       (1 << 3)
+#define MCLK_APBCMASK_TCC3                       (1 << 4)
+#define MCLK_APBCMASK_TC4                        (1 << 5)
+#define MCLK_APBCMASK_TC5                        (1 << 6)
+#define MCLK_APBCMASK_PDEC                       (1 << 7)
+#define MCLK_APBCMASK_AC                         (1 << 8)
+#define MCLK_APBCMASK_AES                        (1 << 9)
+#define MCLK_APBCMASK_TRNG                       (1 << 10)
+#define MCLK_APBCMASK_ICM                        (1 << 11)
+#define MCLK_APBCMASK_QSPI                       (1 << 13)
+#define MCLK_APBCMASK_CCL                        (1 << 14)
+    uint32_t apbdmask;
+#define MCLK_APBDMASK_SERCOM4                    (1 << 0)
+#define MCLK_APBDMASK_SERCOM5                    (1 << 1)
+#define MCLK_APBDMASK_SERCOM6                    (1 << 2)
+#define MCLK_APBDMASK_SERCOM7                    (1 << 3)
+#define MCLK_APBDMASK_TCC4                       (1 << 4)
+#define MCLK_APBDMASK_TC6                        (1 << 5)
+#define MCLK_APBDMASK_TC7                        (1 << 6)
+#define MCLK_APBDMASK_ADC0                       (1 << 7)
+#define MCLK_APBDMASK_ADC1                       (1 << 8)
+#define MCLK_APBDMASK_DAC                        (1 << 9)
+#define MCLK_APBDMASK_I2S                        (1 << 10)
+#define MCLK_APBDMASK_PCC                        (1 << 11)
+} __attribute__((packed)) mclk_t;
+
+
+#define MCLK_BASE                                0x40000800
+#define MCLK                                     ((volatile mclk_t *)MCLK_BASE)
+
+
+typedef struct oscctrl
+{
+    uint8_t  evctrl;
+#define OSCCTRL_EVCTRL_CFDEO0                    (1 << 0)
+#define OSCCTRL_EVCTRL_CFDEO1                    (1 << 0)
+    uint8_t  resvd_0x1[3];
+    uint32_t intenclr;
+#define OSCCTRL_INTENCLR_XOSCRDY0                (1 << 0)
+#define OSCCTRL_INTENCLR_XOSCRDY1                (1 << 1)
+#define OSCCTRL_INTENCLR_XOSCFAIL0               (1 << 2)
+#define OSCCTRL_INTENCLR_XOSCFAIL1               (1 << 3)
+#define OSCCTRL_INTENCLR_DFLLRDY                 (1 << 8)
+#define OSCCTRL_INTENCLR_DFLLOOB                 (1 << 9)
+#define OSCCTRL_INTENCLR_DFLLLCKF                (1 << 10)
+#define OSCCTRL_INTENCLR_DFLLLCKC                (1 << 11)
+#define OSCCTRL_INTENCLR_DFLLRCS                 (1 << 12)
+#define OSCCTRL_INTENCLR_DPLLL0CKR               (1 << 16)
+#define OSCCTRL_INTENCLR_CPLLL0CKF               (1 << 17)
+#define OSCCTRL_INTENCLR_CPLLL0TO                (1 << 18)
+#define OSCCTRL_INTENCLR_DPLLL0DRTO              (1 << 19)
+#define OSCCTRL_INTENCLR_DPLLL1CKR               (1 << 24)
+#define OSCCTRL_INTENCLR_CPLLL1CKF               (1 << 25)
+#define OSCCTRL_INTENCLR_CPLLL1TO                (1 << 26)
+#define OSCCTRL_INTENCLR_DPLLL1DRTO              (1 << 27)
+    uint32_t intenset;
+#define OSCCTRL_INTENSET_XOSCRDY0                (1 << 0)
+#define OSCCTRL_INTENSET_XOSCRDY1                (1 << 1)
+#define OSCCTRL_INTENSET_XOSCFAIL0               (1 << 2)
+#define OSCCTRL_INTENSET_XOSCFAIL1               (1 << 3)
+#define OSCCTRL_INTENSET_DFLLRDY                 (1 << 8)
+#define OSCCTRL_INTENSET_DFLLOOB                 (1 << 9)
+#define OSCCTRL_INTENSET_DFLLLCKF                (1 << 10)
+#define OSCCTRL_INTENSET_DFLLLCKC                (1 << 11)
+#define OSCCTRL_INTENSET_DFLLRCS                 (1 << 12)
+#define OSCCTRL_INTENSET_DPLLL0CKR               (1 << 16)
+#define OSCCTRL_INTENSET_CPLLL0CKF               (1 << 17)
+#define OSCCTRL_INTENSET_CPLLL0TO                (1 << 18)
+#define OSCCTRL_INTENSET_DPLLL0DRTO              (1 << 19)
+#define OSCCTRL_INTENSET_DPLLL1CKR               (1 << 24)
+#define OSCCTRL_INTENSET_CPLLL1CKF               (1 << 25)
+#define OSCCTRL_INTENSET_CPLLL1TO                (1 << 26)
+#define OSCCTRL_INTENSET_DPLLL1DRTO              (1 << 27)
+    uint32_t intflag;
+#define OSCCTRL_INTFLAG_XOSCRDY0                 (1 << 0)
+#define OSCCTRL_INTFLAG_XOSCRDY1                 (1 << 1)
+#define OSCCTRL_INTFLAG_XOSCFAIL0                (1 << 2)
+#define OSCCTRL_INTFLAG_XOSCFAIL1                (1 << 3)
+#define OSCCTRL_INTFLAG_DFLLRDY                  (1 << 8)
+#define OSCCTRL_INTFLAG_DFLLOOB                  (1 << 9)
+#define OSCCTRL_INTFLAG_DFLLLCKF                 (1 << 10)
+#define OSCCTRL_INTFLAG_DFLLLCKC                 (1 << 11)
+#define OSCCTRL_INTFLAG_DFLLRCS                  (1 << 12)
+#define OSCCTRL_INTFLAG_DPLL0LCKR                (1 << 16)
+#define OSCCTRL_INTFLAG_CPLL0LCKF                (1 << 17)
+#define OSCCTRL_INTFLAG_CPLLL0TO                 (1 << 18)
+#define OSCCTRL_INTFLAG_DPLLL0DRTO               (1 << 19)
+#define OSCCTRL_INTFLAG_DPLL1LCKR                (1 << 24)
+#define OSCCTRL_INTFLAG_CPLL1LCKF                (1 << 25)
+#define OSCCTRL_INTFLAG_CPLLL1TO                 (1 << 26)
+#define OSCCTRL_INTFLAG_DPLLL1DRTO               (1 << 27)
+    uint32_t status;
+#define OSCCTRL_STATUS_XOSCRDY0                  (1 << 0)
+#define OSCCTRL_STATUS_XOSCRDY1                  (1 << 1)
+#define OSCCTRL_STATUS_XOSCFAIL0                 (1 << 2)
+#define OSCCTRL_STATUS_XOSCFAIL1                 (1 << 3)
+#define OSCCTRL_STATUS_XOSCCKSW0                 (1 << 4)
+#define OSCCTRL_STATUS_XOSCCKSW1                 (1 << 5)
+#define OSCCTRL_STATUS_DFLLRDY                   (1 << 8)
+#define OSCCTRL_STATUS_DFLLOOB                   (1 << 9)
+#define OSCCTRL_STATUS_DFLLLCKF                  (1 << 10)
+#define OSCCTRL_STATUS_DFLLLCKC                  (1 << 11)
+#define OSCCTRL_STATUS_DFLLRCS                   (1 << 12)
+#define OSCCTRL_STATUS_DPLL0LCKR                 (1 << 16)
+#define OSCCTRL_STATUS_DPLL0LCKF                 (1 << 17)
+#define OSCCTRL_STATUS_DPLLL0TO                  (1 << 18)
+#define OSCCTRL_STATUS_DPLLL0DRTO                (1 << 19)
+#define OSCCTRL_STATUS_DPLL1LCKR                 (1 << 24)
+#define OSCCTRL_STATUS_DPLL1LCKF                 (1 << 25)
+#define OSCCTRL_STATUS_DPLLL1TO                  (1 << 26)
+#define OSCCTRL_STATUS_DPLLL1DRTO                (1 << 27)
+    uint32_t xoscctrl[2];
+#define OSCCTRL_XOSCCTRL_ENABLE                  (1 << 1)
+#define OSCCTRL_XOSCCTRL_XTALEN                  (1 << 2)
+#define OSCCTRL_XOSCCTRL_RUNSTDBY                (1 << 6)
+#define OSCCTRL_XOSCCTRL_ONDEMAND                (1 << 7)
+#define OSCCTRL_XOSCCTRL_LOWBUFGAIN              (1 << 8)
+#define OSCCTRL_XOSCCTRL_IPTAT(val)              (((val) & 0x3) << 9)
+#define OSCCTRL_XOSCCTRL_IPMULTI(val)            (((val) & 0xf) << 11)
+#define OSCCTRL_XOSCCTRL_ENALC                   (1 << 15)
+#define OSCCTRL_XOSCCTRL_CFDEN                   (1 << 16)
+#define OSCCTRL_XOSCCTRL_SWBEN                   (1 << 17)
+#define OSCCTRL_XOSCCTRL_STARTUP(val)            ((val & 0xff) << 20)
+#define OSCCTRL_XOSCCTRL_CFDPRESC(val)           ((val & 0xff) << 24)
+    uint8_t dfllctrla;
+#define OSCCTRL_DFLLCTRLA_ENABLE                 (1 << 1)
+#define OSCCTRL_DFLLCTRLA_RUNSTDBY               (1 << 6)
+#define OSCCTRL_DFLLCTRLA_ONDEMAND               (1 << 7)
+    uint8_t resvd_0x1d[3];
+    uint8_t dfllctrlb;
+#define OSCCTRL_DFLLCTRLB_MODE                   (1 << 0)
+#define OSCCTRL_DFLLCTRLB_STABLE                 (1 << 1)
+#define OSCCTRL_DFLLCTRLB_LLAW                   (1 << 2)
+#define OSCCTRL_DFLLCTRLB_USBCRM                 (1 << 3)
+#define OSCCTRL_DFLLCTRLB_CCDIS                  (1 << 4)
+#define OSCCTRL_DFLLCTRLB_QLDIS                  (1 << 5)
+#define OSCCTRL_DFLLCTRLB_BPLCKC                 (1 << 6)
+#define OSCCTRL_DFLLCTRLB_WAITLOCK               (1 << 7)
+    uint8_t resvd_0x21[3];
+    uint32_t dfllval;
+#define OSCCTRL_DFLLVAL_FINE(val)                (((val) & 0x3ff) << 0)
+#define OSCCTRL_DFLLVAL_COARSE(val)              (((val) & 0x3f) << 10)
+#define OSCCTRL_DFLLVAL_DIFF(val)                (((val) & 0xffff) << 16)
+    uint32_t dfllmul;
+#define OSCCTRL_DFLLMUL_MUL(val)                 (((val) & 0xffff) << 0)
+#define OSCCTRL_DFLLMUL_FSTEP(val)               (((val) & 0x3ff) << 16)
+#define OSCCTRL_DFLLMUL_CSTEP(val)               (((val) & 0x3f) << 26)
+    uint8_t  dfllsync;
+#define OSCCTRL_DFLLSYNC_ENABLE                  (1 << 1)
+#define OSCCTRL_DFLLSYNC_DFLLCTRLB               (1 << 2)
+#define OSCCTRL_DFLLSYNC_DFLLVAL                 (1 << 3)
+#define OSCCTRL_DFLLSYNC_DFLLMUL                 (1 << 4)
+    uint8_t  resvd_0x25[3];
+    uint8_t  dpll0ctrla;
+#define OSCCTRL_DPLL0CTRLA_ENABLE                (1 << 1)
+#define OSCCTRL_DPLL0CTRLA_RUNSTDBY              (1 << 6)
+#define OSCCTRL_DPLL0CTRLA_ONDEMAND              (1 << 7)
+    uint8_t  resvd_0x29[3];
+    uint32_t dpll0ratio;
+#define OSCCTRL_DPLL0RATIO_LDR(val)              (((val) & 0xfff) << 0)
+#define OSCCTRL_DPLL0RATIO_LDRFRAC(val)          (((val) & 0xf) << 16)
+    uint32_t dpll0ctrlb;
+#define OSCCTRL_DPLL0CTRLB_FILTER(val)           (((val) & 0xf) << 0)
+#define OSCCTRL_DPLL0CTRLB_WUF                   (1 << 4)
+#define OSCCTRL_DPLL0CTRLB_REFCLK_GCLK           (0x0 << 5)
+#define OSCCTRL_DPLL0CTRLB_REFCLK_XOSC32K        (0x1 << 5)
+#define OSCCTRL_DPLL0CTRLB_REFCLK_XOSC0          (0x2 << 5)
+#define OSCCTRL_DPLL0CTRLB_REFCLK_XOSC1          (0x3 << 5)
+#define OSCCTRL_DPLL0CTRLB_LTIME(val)            (((val) & 0x7) << 8)
+#define OSCCTRL_DPLL0CTRLB_LBYPASS               (1 << 11)
+#define OSCCTRL_DPLL0CTRLB_DCOFILTER(val)        ((val & 0x7) << 12)
+#define OSCCTRL_DPLL0CTRLB_DCOEN                 (1 << 15)
+#define OSCCTRL_DPLL0CTRLB_DIV(val)              (((val) & 0x3ff) << 16)
+    uint32_t dpll0syncbusy;
+#define OSCCTRL_DPLL0SYNCBUSY_ENABLE             (1 << 1)
+#define OSCCTRL_DPLL0SYNCBUSY_DPLLRATIO          (1 << 2)
+    uint32_t dpll0status;
+#define OSCCTRL_DPLL0STATUS_LOCK                 (1 << 0)
+#define OSCCTRL_DPLL0STATUS_CLKRDY               (1 << 1)
+    uint8_t  dpll1ctrla;
+#define OSCCTRL_DPLL1CTRLA_ENABLE                (1 << 1)
+#define OSCCTRL_DPLL1CTRLA_RUNSTDBY              (1 << 6)
+#define OSCCTRL_DPLL1CTRLA_ONDEMAND              (1 << 7)
+    uint8_t  resvd_0x45[3];
+    uint32_t dpll1ratio;
+#define OSCCTRL_DPLL1RATIO_LDR(val)              (((val) & 0xfff) << 0)
+#define OSCCTRL_DPLL1RATIO_LDRFRAC(val)          (((val) & 0xf) << 16)
+    uint32_t dpll1ctrlb;
+#define OSCCTRL_DPLL1CTRLB_FILTER(val)           (((val) & 0xf) << 0)
+#define OSCCTRL_DPLL1CTRLB_WUF                   (1 << 4)
+#define OSCCTRL_DPLL1CTRLB_REFCLK_XOSC32K        (0x0 << 5)
+#define OSCCTRL_DPLL1CTRLB_REFCLK_XOSC           (0x1 << 5)
+#define OSCCTRL_DPLL1CTRLB_REFCLK_GCLK           (0x2 << 5)
+#define OSCCTRL_DPLL1CTRLB_LTIME(val)            (((val) & 0x7) << 8)
+#define OSCCTRL_DPLL1CTRLB_LBYPASS               (1 << 11)
+#define OSCCTRL_DPLL1CTRLB_DCOFILTER(val)        ((val & 0x7) << 12)
+#define OSCCTRL_DPLL1CTRLB_DCOEN                 (1 << 15)
+#define OSCCTRL_DPLL1CTRLB_DIV(val)              (((val) & 0x3ff) << 16)
+    uint32_t dpll1syncbusy;
+#define OSCCTRL_DPLL1SYNCBUSY_ENABLE            (1 << 1)
+#define OSCCTRL_DPLL1SYNCBUSY_DPLLRATIO         (1 << 2)
+    uint32_t dpll1status;
+#define OSCCTRL_DPLL1STATUS_LOCK                (1 << 0)
+#define OSCCTRL_DPLL1STATUS_CLKRDY              (1 << 1)
+} __attribute__((packed)) oscctrl_t;
+
+
+#define OSCCTRL_BASE                             0x40001000
+#define OSCCTRL                                  ((volatile oscctrl_t *)OSCCTRL_BASE)
+
+#define DFLLCTRL_COARSE_VAL                      (*((uint32_t *)0x00806020) >> 26)
+#define DFLLVAL_USB_RECOVERY                     0xbb80
+
+
+typedef struct xosc32k
+{
+    uint32_t intenclr;
+#define XOSC32K_INTENCLR_XOSC32KRDY              (1 << 0)
+#define XOSC32K_INTENCLR_XOSC32KFAIL             (1 << 2)
+    uint32_t intenset;
+#define XOSC32K_INTENSET_XOSC32KRDY              (1 << 0)
+#define XOSC32K_INTENSET_XOSC32KFAIL             (1 << 2)
+    uint32_t intflag;
+#define XOSC32K_INTFLAG_XOSC32KRDY               (1 << 0)
+#define XOSC32K_INTFLAG_XOSC32KFAIL              (1 << 2)
+    uint32_t status;
+#define XOSC32K_STATUS_XOSC32KRDY                (1 << 0)
+#define XOSC32K_STATUS_XOSC32KFAIL               (1 << 2)
+#define XOSC32K_STATUS_XOSC32KSW                 (1 << 3)
+    uint8_t  rtcctrl;
+#define XOSC32K_RTCCTRL_RTCSEL(val)              ((val & 0x7) << 0)
+    uint8_t  resvd_0x11[3];
+    uint16_t xosc32k;
+#define XOSC32K_XOSC32K_ENABLE                   (1 << 1)
+#define XOSC32K_XOSC32K_XTALEN                   (1 << 2)
+#define XOSC32K_XOSC32K_EN32K                    (1 << 3)
+#define XOSC32K_XOSC32K_EN1K                     (1 << 4)
+#define XOSC32K_XOSC32K_RUNSTDBY                 (1 << 6)
+#define XOSC32K_XOSC32K_ONDEMAND                 (1 << 7)
+#define XOSC32K_XOSC32K_STARTUP(val)             ((val & 0x7) << 8)
+#define XOSC32K_XOSC32K_WRTLOCK                  (1 << 12)
+#define XOSC32K_XOSC32K_CGM(val)                 ((val & 0x3) << 13)
+#define XOSC32K_XOSC32K_CGM_XT                   (0x1 << 13)
+#define XOSC32K_XOSC32K_CGM_HS                   (0x2 << 13)
+    uint8_t  cfdctrl;
+#define XOSC32K_CFDCTRL_CFDEN                    (1 << 0)
+#define XOSC32K_CFDCTRL_SWBACK                   (1 << 1)
+#define XOSC32K_CFDCTRL_CFDPRESC                 (1 << 2)
+    uint8_t  evctrl;
+#define XOSC32K_EVCTRL_CFDEO                     (1 << 0)
+    uint8_t  resvd_0x18[4];
+    uint32_t osculp32k;
+#define XOSC32K_OSCULP32K_CALIB(val)             ((val & 0x3f) << 0)
+#define XOSC32K_OSCULP32K_WRTLOCK                (1 << 7)
+} __attribute__ ((packed)) xosc32k_t;
+
+
+#define XOSC32K                                  ((volatile xosc32k_t *)0x40001400)
+
+
+typedef struct pm
+{
+    uint8_t ctrla;
+#define PM_CTRLA_IORET                           (1 << 2)
+    uint8_t sleepcfg;
+#define PM_SLEEPCFG_MODE(val)                    ((val & 0x7) << 0)
+    uint8_t resvd_0x02[2];
+    uint8_t intenclr;
+#define PM_INTENCLR_SLEEPRDY                     (1 << 0)
+    uint8_t intenset;
+#define PM_INTENSET_SLEEPRDY                     (1 << 0)
+    uint8_t intflag;
+#define PM_INTFLAG_SLEEPRDY                      (1 << 0)
+    uint8_t resvd_0x7;
+    uint8_t stdbycfg;
+#define PM_STDBYCFG_RAMCFG(val)                  ((val & 0x3) << 0)
+#define PM_STDBYCFG_FASTWKUP(val)                ((val & 0x3) << 4)
+    uint8_t hibcfg;
+#define PM_HIBCFG_RAMCFG(val)                    ((val & 0x3) << 0)
+#define PM_HIBCFG_BRAMCFG(val)                   ((val & 0x3) << 2)
+    uint8_t bkupcfg;
+#define PM_BKUPCFG_BRAMCFG(val)                  ((val & 0x3) << 0)
+} __attribute__((packed)) pm_t;
+
+#define PM_BASE                                  0x40000400
+#define PM                                       ((volatile pm_t *)PM_BASE)
+
+
+#endif /* __AT91SAMD53__ */
+
+
 void gclk_setup(uint8_t clknum, uint8_t src, uint16_t div);
 void gclk_peripheral_enable(uint8_t clknum, uint8_t peripheral);
 void gclk_peripheral_disable(uint8_t clknum, uint8_t peripheral);

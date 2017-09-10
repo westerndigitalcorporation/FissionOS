@@ -47,6 +47,7 @@ platforms = [
     'at91sam4e',
     'at91saml21',
     'at91samd20',
+    'atsamd53',
     'k20',
 ];
 

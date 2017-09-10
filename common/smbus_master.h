@@ -114,6 +114,6 @@ typedef struct smbus_udid
             "    write data : Bytes to write separated by spaces.\r\n", \
     }
 
-int cmd_smbus(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_smbus(console_t *console, int argc, char *argv[]);
 
 #endif /* __SMBUS_MASTER_H__ */

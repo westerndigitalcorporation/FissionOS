@@ -39,16 +39,17 @@
 
 #include "vectors.h"
 #include "context.h"
+#include "workqueue.h"
+#include "console.h"
 
 #include "sam4_clock.h"
 #include "sam4_uart.h"
-#include "sam4_gmac.h"
+#include "sam4_gpio.h"
 
 #include "lwip/netif.h"
 #include "netif/etharp.h"
 
-#include "workqueue.h"
-#include "console.h"
+#include "sam4_gmac.h"
 
 
 #define PHY_BMCR                      0x00
@@ -423,63 +424,63 @@ void gmac_init(gmac_drv_t *gmac, uint8_t *mac_addr, uint8_t phy_addr,
 /*
  * Console/debug
  */
-int cmd_eth_desc(uart_drv_t *uart)
+int cmd_eth_desc(console_t *console)
 {
     int i;
 
-    console_print("TX Descriptors:  Next %d\r\n", gmac_instance->txbuf_next);
+    console_print(console, "TX Descriptors:  Next %d\r\n", gmac_instance->txbuf_next);
     for (i = 0; i < gmac_instance->txbuf_count; i++)
     {
         volatile gmac_txbuf_desc_t *desc = &gmac_instance->txdesc[i];
 
-        console_print("    %d: %08x %08x\r\n", i, desc->addr, desc->status);
+        console_print(console, "    %d: %08x %08x\r\n", i, desc->addr, desc->status);
     }
 
-    console_print("RX Descriptors:  Next %d\r\n", gmac_instance->rxbuf_next);
+    console_print(console, "RX Descriptors:  Next %d\r\n", gmac_instance->rxbuf_next);
     for (i = 0; i < gmac_instance->rxbuf_count; i++)
     {
         volatile gmac_rxbuf_desc_t *desc = &gmac_instance->rxdesc[i];
-        console_print("    %d: %08x %08x\r\n", i, desc->addr, desc->status);
+        console_print(console, "    %d: %08x %08x\r\n", i, desc->addr, desc->status);
     }
 
     return 0;
 }
 
-int cmd_eth_regs(uart_drv_t *uart)
+int cmd_eth_regs(console_t *console)
 {
     int i;
 
     for (i = 0; i < 0x40; i += sizeof(uint32_t))
     {
-        console_print("    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
+        console_print(console, "    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
         if (((i + 4) % (4 * 4)) == 0)
         {
-            console_print("\r\n");
+            console_print(console, "\r\n");
         }
     }
 
     for (i = 0x80; i < 0xd0; i += sizeof(uint32_t))
     {
-        console_print("    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
+        console_print(console, "    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
         if (((i + 4) % (4 * 4)) == 0)
         {
-            console_print("\r\n");
+            console_print(console, "\r\n");
         }
     }
 
     for (i = 0x100; i < 0x200; i += sizeof(uint32_t))
     {
-        console_print("    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
+        console_print(console, "    %03x: %08x", i, *(volatile uint32_t *)(GMAC_ADDR + i));
         if (((i + 4) % (4 * 4)) == 0)
         {
-            console_print("\r\n");
+            console_print(console, "\r\n");
         }
     }
 
     return 0;
 }
 
-int cmd_eth_link(uart_drv_t *uart)
+int cmd_eth_link(console_t *console)
 {
     uint16_t reg;
 
@@ -489,7 +490,7 @@ int cmd_eth_link(uart_drv_t *uart)
     if (reg & PHY_BMSR_ANCOMPL)
     {
         reg = gmac_phy_read(gmac_phy_addr, PHY_BMSR);
-        console_print("Link      : %s%s\r\n",
+        console_print(console, "Link      : %s%s\r\n",
                       reg & (PHY_ANLPAR_100TX_FDX || PHY_ANLPAR_100TX_HDX) ?
                       "100" : "10",
                       reg & (PHY_ANLPAR_100TX_FDX || PHY_ANLPAR_10_FDX) ?
@@ -497,7 +498,7 @@ int cmd_eth_link(uart_drv_t *uart)
     }
     else
     {
-        console_print("  No Link\r\n");
+        console_print(console, "  No Link\r\n");
     }
 
     gmac_man_disable();
@@ -506,7 +507,7 @@ int cmd_eth_link(uart_drv_t *uart)
 }
 
 #define PHY_REG_COUNT                            32
-int cmd_eth_phy(uart_drv_t *uart)
+int cmd_eth_phy(console_t *console)
 {
     int i;
 
@@ -514,10 +515,10 @@ int cmd_eth_phy(uart_drv_t *uart)
 
     for (i = 0; i < PHY_REG_COUNT; i++)
     {
-        console_print("    %2x: %04x", i, gmac_phy_read(gmac_phy_addr, i));
+        console_print(console, "    %2x: %04x", i, gmac_phy_read(gmac_phy_addr, i));
         if (((i + 1) % 4) == 0)
         {
-            console_print("\r\n");
+            console_print(console, "\r\n");
         }
     }
     gmac_man_disable();
@@ -525,38 +526,38 @@ int cmd_eth_phy(uart_drv_t *uart)
     return 0;
 }
 
-int cmd_eth_ints(uart_drv_t *uart)
+int cmd_eth_ints(console_t *console)
 {
-    console_print("Interrupts: %d\r\n", gmac_intcount);
-    console_print("RX Packets: %d\r\n", gmac_rxcount);
-    console_print("TX Packets: %d\r\n", gmac_txcount);
+    console_print(console, "Interrupts: %d\r\n", gmac_intcount);
+    console_print(console, "RX Packets: %d\r\n", gmac_rxcount);
+    console_print(console, "TX Packets: %d\r\n", gmac_txcount);
 
     return 0;
 }
 
-int cmd_eth(uart_drv_t *uart, int argc, char *argv[])
+int cmd_eth(console_t *console, int argc, char *argv[])
 {
     if (argc == 2)
     {
         if (!strcmp("phy", argv[1]))
         {
-            cmd_eth_link(uart);
-            cmd_eth_phy(uart);
+            cmd_eth_link(console);
+            cmd_eth_phy(console);
         } else if (!strcmp("regs", argv[1]))
         {
-            cmd_eth_regs(uart);
+            cmd_eth_regs(console);
         } else if (!strcmp("ints", argv[1]))
         {
-            cmd_eth_ints(uart);
+            cmd_eth_ints(console);
         } else if (!strcmp("desc", argv[1]))
         {
-            cmd_eth_desc(uart);
+            cmd_eth_desc(console);
         }
         return 0;
     }
 
-    cmd_eth_link(uart);
-    cmd_eth_ints(uart);
+    cmd_eth_link(console);
+    cmd_eth_ints(console);
 
     return 0;
 }

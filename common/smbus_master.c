@@ -59,7 +59,7 @@ void cmd_smbus_result(twi_drv_t *t, void *arg, int result)
 }
 
 #define TWI_CMD_BUFLEN                           32
-int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
+int cmd_smbus(console_t *console, int argc, char *argv[])
 {
     uint32_t read_len = 0, write_len = 0;
     uint8_t write_buffer[TWI_CMD_BUFLEN], read_buffer[TWI_CMD_BUFLEN];
@@ -77,19 +77,19 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
     {
         if ((argc == 2) && (!strcmp(argv[1], "list")))
         {
-            console_print("Available devices\r\n");
+            console_print(console, "Available devices\r\n");
             for (i = 0; i < SERCOM_COUNT; i++)
             {
                 if (twi_drv[i])
                 {
-                    console_print("  %d\r\n", i);
+                    console_print(console, "  %d\r\n", i);
                 }
             }
 
             return 0;
         }
 
-        cmd_help_usage(uart, argv[0]);
+        cmd_help_usage(console, argv[0]);
         return 0;
     }
 
@@ -99,13 +99,13 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
     twi_index = strtoul(argv[count++], NULL, 0);
     if (twi_index >= SERCOM_COUNT)
     {
-        console_print("Invalid TWI device\r\n");
+        console_print(console, "Invalid TWI device\r\n");
         return 0;
     }
 
     if (!twi_drv[twi_index])
     {
-        console_print("TWI device not initialized\r\n");
+        console_print(console, "TWI device not initialized\r\n");
         return 0;
     }
 
@@ -120,7 +120,7 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
     }
     if (read_len > sizeof(read_buffer))
     {
-        console_print("Read length must be <= %d\r\n", sizeof(read_buffer));
+        console_print(console, "Read length must be <= %d\r\n", sizeof(read_buffer));
         return 0;
     }
 
@@ -132,7 +132,7 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
 
     if (count < argc)
     {
-        console_print("Write length must be <= %d\r\n", sizeof(write_buffer) - 1);
+        console_print(console, "Write length must be <= %d\r\n", sizeof(write_buffer) - 1);
         return -1;
     }
 
@@ -145,13 +145,13 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
     if (twi_master_xfer(twi_drv[twi_index], addr, write_buffer, write_len, read_buffer, read_len,
                         cmd_smbus_result, &result))
     {
-        console_print("TWI Controller Busy");
+        console_print(console, "TWI Controller Busy");
         return -1;
     }
 
     twi_master_wait(twi_drv[twi_index]);
 
-    console_print("Result: %s\r\n", result_msg[result]);
+    console_print(console, "Result: %s\r\n", result_msg[result]);
     if (!result && read_len)
     {
         uint8_t pec;
@@ -160,15 +160,15 @@ int cmd_smbus(uart_drv_t *uart, int argc, char *argv[])
         pec = crc8(read_buffer, read_len - 1);
         if (pec != read_buffer[read_len - 1])
         {
-            console_print("Incorrect PEC\r\n");
+            console_print(console, "Incorrect PEC\r\n");
         }
         else
         {
             for (i = 0; i < read_len; i++)
             {
-                console_print("%02x ", read_buffer[i]);
+                console_print(console, "%02x ", read_buffer[i]);
             }
-            console_print("\r\n");
+            console_print(console, "\r\n");
         }
     }
 

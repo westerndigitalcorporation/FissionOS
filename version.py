@@ -68,7 +68,7 @@ def add_builders(env):
         return 0
 
     def pseudo_version_tuple(env, source):
-        return read_version(source[0].srcnode().abspath)
+        return read_version(source.srcnode().abspath)
 
     def pseudo_version_string(env, source):
         return '.'.join(read_version(source.srcnode().abspath))

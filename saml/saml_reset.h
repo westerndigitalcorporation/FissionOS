@@ -38,8 +38,10 @@
 
 #include <vectors.h>
 
-#include "saml_sercom.h"
+#include "console.h"
 
+
+#if defined(__AT91SAML21__) || defined(__AT91SAMD20__)
 
 typedef struct reset
 {
@@ -81,18 +83,6 @@ typedef struct reset
 #define RESET                                    ((volatile reset_t *)0x40000800)
 
 
-#define AIRCR_SYSRESETREQ                        (1 << 2)
-#define AIRCR_VECTKEY                            (0x05fa << 16)
-#define AIRCR                                    ((volatile uint32_t *)0xe000ed0c)
-
-
-static inline void saml_soft_reset(void)
-{
-    barrier();
-    *AIRCR = (AIRCR_SYSRESETREQ | AIRCR_VECTKEY);
-}
-
-
 #define SRAM_BASE_ADDRESS                        0x20000000
 // We'll place the reset config word where the stack pointer is loaded from the vector
 // table.  It's no longer used after loading, and is reset during loading
@@ -113,9 +103,29 @@ static inline void saml_soft_reset(void)
             "    bootloader : Reset device and enter bootloader.\r\n", \
     }
 
+int cmd_reset(console_t *console, int argc, char *argv[]);
+
+#endif /* __ATM91SAML21__ || __AT91SAMD20__ */
 
 
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[]);
+#define AIRCR_SYSRESETREQ                        (1 << 2)
+#define AIRCR_VECTKEY                            (0x05fa << 16)
+#define AIRCR                                    ((volatile uint32_t *)0xe000ed0c)
+
+
+static inline void saml_soft_reset(void)
+{
+    volatile uint32_t data = AIRCR_SYSRESETREQ | AIRCR_VECTKEY;
+    uint32_t addr = (uint32_t)AIRCR;
+    barrier();
+
+    asm volatile ("str %0, [%1];"
+                  :
+                  : "r"(data), "r"(addr)
+                  :
+                 );
+}
+
 
 
 #endif /* __SAML_RESET_H__ */

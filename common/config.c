@@ -175,7 +175,7 @@ int config_image_update(uint32_t boot_bank, uint32_t image_len, uint32_t image_c
     return config_save(&config);
 }
 
-int cmd_config(uart_drv_t *uart, int argc, char *argv[])
+int cmd_config(console_t *console, int argc, char *argv[])
 {
 #if defined(__DUAL_BANK_FLASH__)
     uint32_t boot_bank = eefc_boot_bank();
@@ -188,25 +188,25 @@ int cmd_config(uart_drv_t *uart, int argc, char *argv[])
     config_desc_t config;
     uint32_t crc;
 
-    console_print("\nRunning Bank: %s\r\n\n", boot_bank ? "EEFC1" : "EEFC0");
+    console_print(console, "\nRunning Bank: %s\r\n\n", boot_bank ? "EEFC1" : "EEFC0");
     if (config_load(&config))
     {
-        console_print("No Configuration Found\r\n");
+        console_print(console, "No Configuration Found\r\n");
         return 0;
     }
 
-    console_print("Config Descriptor\r\n");
+    console_print(console, "Config Descriptor\r\n");
 #if defined(__DUAL_BANK_FLASH__)
-    console_print("  Next Boot: %s\r\n", config.boot_bank ? "EFFC1" : "EFFC0");
+    console_print(console, "  Next Boot: %s\r\n", config.boot_bank ? "EFFC1" : "EFFC0");
 #endif /* __DUAL_BANK_FLASH__ */
     crc = crc32((uint8_t *)eefc0_addr, config.eefc0_image_len);
-    console_print("  EEFC0 Image CRC: %08x Len: %9d (%s)\r\n",
+    console_print(console, "  EEFC0 Image CRC: %08x Len: %9d (%s)\r\n",
                   config.eefc0_image_crc,
                   config.eefc0_image_len,
                   crc && (crc == config.eefc0_image_crc) ? "Valid" : "Invalid");
 #if defined(__DUAL_BANK_FLASH__)
     crc = crc32((uint8_t *)eefc1_addr, config.eefc1_image_len);
-    console_print("  EEFC1 Image CRC: %08x Len: %9d (%s)\r\n\n",
+    console_print(console, "  EEFC1 Image CRC: %08x Len: %9d (%s)\r\n\n",
                   config.eefc1_image_crc,
                   config.eefc1_image_len,
                   crc && (crc == config.eefc1_image_crc) ? "Valid" : "Invalid");

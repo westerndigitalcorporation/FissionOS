@@ -57,7 +57,6 @@ def cortexm_flags(env):
         -ffunction-sections
         -fdata-sections
         -fno-omit-frame-pointer
-        -fdiagnostics-color=always
     '''.split()
 
     env['CFLAGS'] = cflags
@@ -99,7 +98,7 @@ def cortexm_flags(env):
             HEXCOMSTR    = "Hex      ${TARGET}",
             ELFCOMSTR    = "Elf      ${TARGET}",
             IMGCOMSTR    = "Img      ${TARGET}",
-            APPCOMSTR    = "App      ${TARGET}",
+            FWCOMSTR     = "Firmware ${TARGET}",
             UNTARCOMSTR  = "UnTar    ${SOURCE}",
             BUILDCOMSTR  = "Build    ${TARGETS}",
             APPLYCOMSTR  = "Apply    ${SOURCE}",
@@ -251,11 +250,14 @@ def cortexm_builders(env):
             size = len(data)
             crc = crc32(data)
 
-            major, minor, micro = env['VERSION']
+            major, minor, micro = (0, 0, 0)
+            if 'VERSION' in env:
+                major, minor, micro = env['VERSION']
 
-            print "  Version : " + str(major) + "." + str(minor) + "." + str(micro)
-            print "  Size    : " + str(size)
-            print "  CRC     : " + hex(crc)
+            if env['V']:
+                print "  Version : " + str(major) + "." + str(minor) + "." + str(micro)
+                print "  Size    : " + str(size)
+                print "  CRC     : " + hex(crc)
 
             header = [ # See boot.h for struct definition
                        # magic
@@ -313,13 +315,13 @@ def cortexm_builders(env):
             action = SCons.Action.Action(create_usersig, "${USERSIGCOMSTR}"),
             suffix = '.usersig'
         ),
+        'Firmware' : SCons.Builder.Builder(
+            action = SCons.Action.Action(create_app_image, "${FWCOMSTR}"),
+            suffix = ".fw"
+        ),
         'SectionHeader' : SCons.Builder.Builder(
             action = SCons.Action.Action(create_section_header, "${SECTIONCOMSTR}"),
             suffix = '.h'
-        ),
-        'App': SCons.Builder.Builder(
-            action = SCons.Action.Action(create_app_image, "${APPCOMSTR}"),
-            suffix = ".app"
         ),
         'Image': SCons.Builder.Builder(
             action = SCons.Action.Action(create_full_binary, "${IMGCOMSTR}"),

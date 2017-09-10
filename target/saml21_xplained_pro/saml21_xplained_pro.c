@@ -44,16 +44,22 @@
 #include "saml_tc.h"
 #include "saml_nvm.h"
 #include "saml_reset.h"
+#include "saml_usb.h"
 
 #include <vectors.h>
 #include <systick.h>
 #include <workqueue.h>
 #include <console.h>
 #include <smbus_master.h>
+#include <usb.h>
+
+#include "usb_config.h"
 
 #include "saml21_xplained_pro_version.h"
 #include "saml21_xplained_pro.h"
 
+
+console_t console;
 
 //
 // TODO:  Remove the following place holder functions when suitable functions
@@ -70,9 +76,11 @@ uart_drv_t dbg_uart;
 cmd_entry_t cmd_table[] =
 {
     CONSOLE_CMD_HELP,
-    CONSOLE_CMD_RESET,
     CONSOLE_CMD_I2C,
+    CONSOLE_CMD_NVM,
+    CONSOLE_CMD_RESET,
     CONSOLE_CMD_SMBUS,
+    CONSOLE_CMD_USB,
 };
 
 
@@ -108,7 +116,7 @@ void led_handle_work(void *arg)
         }
     }
 
-    tc_pwm_duty(LED_TC, (1 << duty_cycle) - 1);
+    tc_pwm_duty(LED_TC, 0, (1 << duty_cycle) - 1);
 
     workqueue_add(&led_wq, SYSTICK_FREQ / LED_TICKS_SEC);
 }
@@ -176,13 +184,17 @@ void power_init(void)
 {
     volatile supc_t *supc = SUPC;
     volatile pm_t *pm = PM;
-
-    (void)pm->ctrla;
+    volatile uint32_t tmp = pm->ctrla;
 
     supc->vreg |= SUPC_VREG_SEL | SUPC_VREG_VSVSTEP(0) |
                   SUPC_VREG_RUNSTDBY | SUPC_VREG_STDBYPL0 |
                   SUPC_VREG_LPEFF;
     while (!(supc->status & SUPC_STATUS_VREGRDY))
+        ;
+
+    tmp = PM_PLCFG_PLSEL(2);
+    pm->plcfg = tmp;
+    while (!(pm->intflag & PM_INTFLAG_PLRDY))
         ;
 }
 
@@ -207,9 +219,9 @@ void clocks_init(void)
      */
 
     // CAUTION: Assuming 3.3 volt operation.
-    // Flash must be configured for 1 wait state @3v3 before going full speed.
-    // At 1v8, 3 wait states must be used.
-    nvm->ctrlb = NVMCTRL_CTRLB_MANW | NVMCTRL_CTRLB_RWS(1);
+    // Flash must be configured for 1 (PL0) and 2 (PL2) wait state @3v3
+    // before going full speed. At 1v8, 3 wait states must be used.
+    nvm->ctrlb = NVMCTRL_CTRLB_MANW | NVMCTRL_CTRLB_RWS(2);
 
     // Turn off the internal 32Khz clock to save power, isn't used.
     osc32->osc32k = 0;
@@ -259,6 +271,8 @@ void clocks_init(void)
 //
 int main(int argc, char *argv[])
 {
+    power_init();
+
     //
     // Clocks
     //
@@ -270,7 +284,7 @@ int main(int argc, char *argv[])
     //
     gclk_peripheral_enable(GCLK0, LED_GCLK_PERIPHERAL);
     port_peripheral_enable(LED_PORT, LED_PIN, LED_TC_MUX);
-    tc_pwm_init(LED_TC, TC_CTRLA_PRESCALER_DIV1, 1, 0);
+    tc_pwm_init(LED_TC, TC_CTRLA_PRESCALER_DIV1, 1);
     led_handle_work(NULL);
 
     //
@@ -279,11 +293,12 @@ int main(int argc, char *argv[])
     gclk_peripheral_enable(GCLK0, DBG_UART_GCLK_PERIPHERAL);
     port_peripheral_enable(DBG_UART_PORT, DBG_UART_PORT_TX_PIN, DBG_UART_PORT_TX_MUX);
     port_peripheral_enable(DBG_UART_PORT, DBG_UART_PORT_RX_PIN, DBG_UART_PORT_RX_MUX);
-    sercom_usart_async_init(&dbg_uart, DBG_UART_PERIPHERAL_ID,
+    sercom_usart_async_init(DBG_UART_ID, &dbg_uart, DBG_UART_PERIPHERAL_ID,
                             GCLK0_HZ, DBG_UART_BAUDRATE,
                             SERCOM_USART_CTRLB_CHSIZE_8BITS, SERCOM_USART_CTRLB_SBMODE_1BIT,
                             SERCOM_USART_CTRLA_FORM_FRAME, SERCOM_USART_CTRLB_PMODE_EVEN,
                             DBG_UART_TX_PAD, DBG_UART_RX_PAD);
+    uart_console(&console, &dbg_uart);
 
     //
     // Setup the I2c port
@@ -294,12 +309,30 @@ int main(int argc, char *argv[])
     twi_init(&twi, TWI_PERIPHERAL_ID, GCLK0_HZ, TWI_CLKRATE);
 
     //
+    // Setup the USB port
+    //
+    gclk_peripheral_enable(GCLK0, GCLK_USB);
+    port_peripheral_enable(USB_DP_PORT, USB_DP_PIN, USB_DP_MUX);
+    port_peripheral_enable(USB_DN_PORT, USB_DN_PIN, USB_DN_MUX);
+    usb_init();
+
+    //
+    // Setup the control endpoint
+    //
+    usb_control0_init((char *)&usb_desc, usb_desc_len,
+                      (char *)&usb_config, usb_config_len,
+                      usb_str_desc);
+
+    //
     // Setup the console, print version info and prompt
     //
-    console_init(&dbg_uart, cmd_table, ARRAY_SIZE(cmd_table));
-    console_print("\r\nSAML21-XPLAINED-PRO Ver %d.%d.%d\r\n",
+    console_init(&console, cmd_table, ARRAY_SIZE(cmd_table),
+                 (console_send_t)uart_send_wait, 
+                 (console_recv_t)uart_recv,
+                 &dbg_uart);
+    console_print(&console, "\r\nSAML21-XPLAINED-PRO Ver %d.%d.%d\r\n",
                   VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-    console_prompt();
+    console_prompt(&console);
 
     //
     // Button input

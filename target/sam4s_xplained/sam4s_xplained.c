@@ -49,7 +49,6 @@
 #include "sam4_ac.h"
 #include "sam4_reset.h"
 #include "sam4_twi.h"
-#include "sam4_uart.h"
 
 #include "vectors.h"
 #include "systick.h"
@@ -68,6 +67,8 @@
 #define LED1_PIN                                 17
 
 
+console_t console;
+
 #define MIDPROM_ADDR                             0xa2
 twi_drv_t twi =
 {
@@ -76,11 +77,11 @@ twi_drv_t twi =
 
 void cmd_twi_complete(twi_drv_t *t, void *arg, int result)
 {
-    console_print("Complete: %d\r\n", result);
+    console_print(&console, "Complete: %d\r\n", result);
 }
 
 uint8_t twi_buf[2];
-int cmd_twi_test(uart_drv_t *uart, int argc, char *argv[])
+int cmd_twi_test(console_t *console, int argc, char *argv[])
 {
     twi_init(&twi, PERIPHERAL_ID_TWI0);
 
@@ -92,8 +93,7 @@ int cmd_twi_test(uart_drv_t *uart, int argc, char *argv[])
 /*
  * Command callbacks
  */
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_pmp(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_reset(console_t *console, int argc, char *argv[]);
 cmd_entry_t cmd_table[] =
 {
     {
@@ -187,16 +187,23 @@ int main(int argc, char *argv[])
     clock_peripheral_start(PERIPHERAL_ID_PIOB);
     clock_peripheral_start(PERIPHERAL_ID_PIOC);
 
-    console_init(&console_uart, cmd_table, ARRAY_SIZE(cmd_table),
-                 CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN,
-                 CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN, 0);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN, 0);
+    uart_console(&console, &console_uart);
+
+    console_init(&console, cmd_table, ARRAY_SIZE(cmd_table),
+                 (console_send_t)uart_send_wait, 
+                 (console_recv_t)uart_recv,
+                 &console_uart);
 
     // Button pullups
     input_change_init(buttons, ARRAY_SIZE(buttons));
 
-    console_print("\r\nSAM4S-XPLAINED Ver %d.%d.%d\r\n",
+    console_print(&console, "\r\nSAM4S-XPLAINED Ver %d.%d.%d\r\n",
                   VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-    console_prompt();
+    console_prompt(&console);
 
     while (1)
     {

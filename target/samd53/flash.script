@@ -1,0 +1,12 @@
+
+reset halt
+
+sleep 3
+poll
+flash probe 0
+flash erase_sector 0 0 1
+
+flash write_image ../samd53_0.0.1.bin 0x0
+verify_image ../samd53_0.0.1.bin 0x0
+
+#reset run

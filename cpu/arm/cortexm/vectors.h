@@ -41,7 +41,7 @@
 #include "sam4_vectors.h"
 #elif defined(__K20__)
 #include "k20_vectors.h"
-#elif defined(__AT91SAML21__) || defined(__AT91SAMD20__)
+#elif defined(__AT91SAML21__) || defined(__AT91SAMD20__) || defined(__ATSAMD53__)
 #include "saml_vectors.h"
 #else
 #error Unknown platform

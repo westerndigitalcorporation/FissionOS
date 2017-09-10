@@ -37,14 +37,14 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "vectors.h"
+#include <vectors.h>
+#include <console.h>
 
 #include "sam4_clock.h"
 #include "sam4_gpio.h"
 #include "sam4_uart.h"
 #include "sam4_dac.h"
 
-#include "console.h"
 
 static dac_drv_t *dacs_ptr = NULL;
 
@@ -98,19 +98,19 @@ void dac_disable(uint8_t channel)
     DAC->chdr = (1 << channel);
 }
 
-int cmd_dac(uart_drv_t *drv, char argc, char *argv[])
+int cmd_dac(console_t *console, char argc, char *argv[])
 {
     uint16_t channel, value;
     if (argc != 3)
     {
-        console_print("Not enough arguments\r\n");
+        console_print(console, "Not enough arguments\r\n");
         return 0;
     }
 
     channel = strtoul(argv[1], NULL, 0);
     if (channel >= DAC_CHANNELS)
     {
-        console_print("Channel must be 0 or 1\r\n");
+        console_print(console, "Channel must be 0 or 1\r\n");
         return 0;
     }
 

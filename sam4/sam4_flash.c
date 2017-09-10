@@ -166,25 +166,25 @@ int eefc_gpnvm_change(uint8_t command, int bit)
 }
 
 
-int cmd_flash(uart_drv_t *uart, int argc, char *argv[])
+int cmd_flash(console_t *console, int argc, char *argv[])
 {
     eefc_desc_t desc;
     uint32_t gpnvm;
 
     eefc_gpnvm_get(&gpnvm);
-    console_print("GPNVM 0x%08x  %s  Boot: %s  Boot Flash Bank: %s\r\n",
+    console_print(console, "GPNVM 0x%08x  %s  Boot: %s  Boot Flash Bank: %s\r\n",
                   gpnvm,
                   gpnvm & (1 << GPNVM_SECURITY_BIT) ? "Protected" : "Not Protected",
                   gpnvm & (1 << GPNVM_BOOT_FLASH_BIT) ? "Flash" : "ROM",
                   gpnvm & (1 << GPNVM_BOOT_BANK_BIT) ? "EFFC1" : "EFFC0");
 
     eefc_desc_read(EEFC0, &desc);
-    console_print("EEFC0 ID 0x%08x   Size %dk   Page Size %d   Planes %d\r\n",
+    console_print(console, "EEFC0 ID 0x%08x   Size %dk   Page Size %d   Planes %d\r\n",
                   desc.fl_id, desc.fl_size / 1024, desc.fl_page_size, desc.fl_nb_plane);
 
 #if defined(__AT91SAM4S__) && defined(__DUAL_BANK_FLASH__)
     eefc_desc_read(EEFC1, &desc);
-    console_print("EEFC1 ID 0x%08x   Size %dk   Page Size %d   Planes %d\r\n",
+    console_print(console, "EEFC1 ID 0x%08x   Size %dk   Page Size %d   Planes %d\r\n",
                   desc.fl_id, desc.fl_size / 1024, desc.fl_page_size, desc.fl_nb_plane);
 #endif
 

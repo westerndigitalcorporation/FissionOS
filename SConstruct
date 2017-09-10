@@ -48,6 +48,13 @@ cortexm_env = Environment(
 )
 Help(opts.GenerateHelpText(cortexm_env))
 
+linux_env = Environment(
+    options = opts,
+    tools = ['linux', 'version'],
+    toolpath = ['.'],
+    ENV = { 'PATH' : os.environ['PATH'], 'TERM' : os.environ['TERM'] }
+)
+
 cortexa_env = Environment(
     options = opts,
     tools = ['cortexa', 'version'],
@@ -63,6 +70,8 @@ cortexa53_env = Environment(
     EXPORTDIR = '#export',
     ENV = { 'PATH' : os.environ['PATH'] }
 )
+
+tools_env = linux_env.Clone()
 
 cortexm4_env = cortexm_env.Clone()
 cortexm4_env.MergeFlags({
@@ -120,9 +129,17 @@ at91saml21_env.MergeFlags({
 at91samd20_env = cortexm0_env.Clone()
 at91samd20_env.MergeFlags({
     'CFLAGS' : [
-        '-D__AT91SAML21__',
+        '-D__AT91SAMD20__',
     ],
     'OBJPREFIX' : [ 'at91samd20_' ],
+})
+
+atsamd53_env = cortexm0_env.Clone()
+atsamd53_env.MergeFlags({
+    'CFLAGS' : [
+        '-D__ATSAMD53__',
+    ],
+    'OBJPREFIX' : [ 'atsamd53_' ],
 })
 
 imx6_env = cortexa8_env.Clone()
@@ -138,30 +155,42 @@ zynqmp_env.MergeFlags({
 })
 
 targets = {
-        'at91sam4sd' : {
-            'ENV' : at91sam4sd_env,
-            'LIBS' : [],
-        },
-        'at91sam4s' : {
-            'ENV' : at91sam4s_env,
-            'LIBS' : [],
-        },
-        'at91sam4e' : {
-            'ENV' : at91sam4e_env,
-            'LIBS' : [],
-        },
-        'at91saml21' : {
-            'ENV' : at91saml21_env,
-            'LIBS' : [],
-        },
-        'imx6' : {
-            'ENV' : imx6_env,
-            'LIBS' : [],
-        },
-        'zynqmp' : {
-            'ENV' : zynqmp_env,
-            'LIBS' : [],
-        }
+    'tools' : {
+        'ENV' : tools_env,
+        'LIBS' : [],
+    },
+    'at91sam4sd' : {
+        'ENV' : at91sam4sd_env,
+        'LIBS' : [],
+    },
+    'at91sam4s' : {
+        'ENV' : at91sam4s_env,
+        'LIBS' : [],
+    },
+    'at91sam4e' : {
+        'ENV' : at91sam4e_env,
+        'LIBS' : [],
+    },
+    'at91saml21' : {
+        'ENV' : at91saml21_env,
+        'LIBS' : [],
+    },
+    'at91samd20' : {
+        'ENV' : at91samd20_env,
+        'LIBS' : [],
+    },
+    'atsamd53' : {
+        'ENV' : atsamd53_env,
+        'LIBS' : [],
+    },
+    'imx6' : {
+        'ENV' : imx6_env,
+        'LIBS' : [],
+    },
+    'zynqmp' : {
+        'ENV' : zynqmp_env,
+        'LIBS' : [],
+    }
 }
 
 Export('targets')

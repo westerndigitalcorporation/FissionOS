@@ -471,7 +471,7 @@ void cmd_twi_result(twi_drv_t *t, void *arg, int result)
 }
 
 #define TWI_CMD_BUFLEN                           32
-int cmd_twi(uart_drv_t *uart, int argc, char *argv[])
+int cmd_twi(console_t *console, int argc, char *argv[])
 {
     uint32_t read_len = 0, write_len = 0;
     uint8_t write_buffer[TWI_CMD_BUFLEN], read_buffer[TWI_CMD_BUFLEN];
@@ -488,7 +488,7 @@ int cmd_twi(uart_drv_t *uart, int argc, char *argv[])
     // cmd, device number, i2c addr, read len, write bytes...
     if (argc <= 3)
     {
-        cmd_help_usage(uart, argv[0]);
+        cmd_help_usage(console, argv[0]);
         return 0;
     }
 
@@ -498,13 +498,13 @@ int cmd_twi(uart_drv_t *uart, int argc, char *argv[])
     twi_index = strtoul(argv[count++], NULL, 0);
     if (twi_index >= TWI_HW_MODULES)
     {
-        console_print("Invalid TWI device\r\n");
+        console_print(console, "Invalid TWI device\r\n");
         return 0;
     }
 
     if (!twis[twi_index])
     {
-        console_print("TWI device not initialized\r\n");
+        console_print(console, "TWI device not initialized\r\n");
         return 0;
     }
 
@@ -515,7 +515,7 @@ int cmd_twi(uart_drv_t *uart, int argc, char *argv[])
     read_len = strtoul(argv[count++], NULL, 0);
     if (read_len > sizeof(read_buffer))
     {
-        console_print("Read length must be <= %d\r\n", sizeof(read_buffer));
+        console_print(console, "Read length must be <= %d\r\n", sizeof(read_buffer));
         return 0;
     }
 
@@ -527,27 +527,27 @@ int cmd_twi(uart_drv_t *uart, int argc, char *argv[])
 
     if (count < argc)
     {
-        console_print("Write length must be <= %d\r\n", sizeof(write_buffer));
+        console_print(console, "Write length must be <= %d\r\n", sizeof(write_buffer));
         return -1;
     }
 
     if (twi_master_xfer(twis[twi_index], addr, write_buffer, write_len, read_buffer, read_len,
                         cmd_twi_result, &result))
     {
-        console_print("TWI Controller Busy");
+        console_print(console, "TWI Controller Busy");
         return -1;
     }
 
     twi_master_wait(twis[twi_index]);
 
-    console_print("Result: %s\r\n", result_msg[result]);
+    console_print(console, "Result: %s\r\n", result_msg[result]);
     if (!result && read_len)
     {
         for (i = 0; i < read_len; i++)
         {
-            console_print("%02x ", read_buffer[i]);
+            console_print(console, "%02x ", read_buffer[i]);
         }
-        console_print("\r\n");
+        console_print(console, "\r\n");
     }
 
     return 0;

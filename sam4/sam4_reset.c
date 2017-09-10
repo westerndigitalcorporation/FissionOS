@@ -37,13 +37,13 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <console.h>
+
 #include "sam4_clock.h"
 #include "sam4_reset.h"
-#include "sam4_uart.h"
 
-#include "console.h"
 
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[])
+int cmd_reset(console_t *console, int argc, char *argv[])
 {
     char *reset_reasons[] =
     {
@@ -59,7 +59,7 @@ int cmd_reset(uart_drv_t *uart, int argc, char *argv[])
         RESET();
     }
 
-    console_print("Reset Reason: %s\r\n",
+    console_print(console, "Reset Reason: %s\r\n",
                   reset_reasons[RSTC_SR_RSTTYPE(RSTC->sr)]);
 
     return 0;

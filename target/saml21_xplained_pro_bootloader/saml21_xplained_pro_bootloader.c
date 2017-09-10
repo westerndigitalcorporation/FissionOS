@@ -55,6 +55,7 @@
 #include "saml_xmodem.h"
 
 
+console_t console;
 extern uint32_t __config_word;
 
 
@@ -99,7 +100,7 @@ void led_handle_work(void *arg)
         duty_cycle = 0;
     }
 
-    tc_pwm_duty(LED_TC, (1 << duty_cycle) - 1);
+    tc_pwm_duty(LED_TC, 0, (1 << duty_cycle) - 1);
 
     workqueue_add(&led_wq, SYSTICK_FREQ / LED_TICKS_SEC);
 }
@@ -162,24 +163,30 @@ int main(int argc, char *argv[])
     // Start the pulsing LED
     gclk_peripheral_enable(LED_GCLK, LED_GCLK_PERIPHERAL);
     port_peripheral_enable(LED_PORT, LED_PIN, LED_TC_MUX);
-    tc_pwm_init(LED_TC, TC_CTRLA_PRESCALER_DIV1, 1, 0);
+    tc_pwm_init(LED_TC, TC_CTRLA_PRESCALER_DIV1, 1);
     led_handle_work(NULL);
 
     // Setup the debug UART
     gclk_peripheral_enable(DBG_UART_GCLK, DBG_UART_GCLK_PERIPHERAL);
     port_peripheral_enable(DBG_UART_PORT, DBG_UART_PORT_TX_PIN, DBG_UART_PORT_TX_MUX);
     port_peripheral_enable(DBG_UART_PORT, DBG_UART_PORT_RX_PIN, DBG_UART_PORT_RX_MUX);
-    sercom_usart_async_init(&dbg_uart, DBG_UART_PERIPHERAL_ID,
+    sercom_usart_async_init(DBG_UART_ID, &dbg_uart, DBG_UART_PERIPHERAL_ID,
                             GCLK0_HZ, DBG_UART_BAUDRATE,
-                            SERCOM_USART_CTRLB_CHSIZE_8BITS, SERCOM_USART_CTRLB_SBMODE_1BIT,
-                            SERCOM_USART_CTRLA_FORM_FRAME, SERCOM_USART_CTRLB_PMODE_EVEN,
+                            SERCOM_USART_CTRLB_CHSIZE_8BITS,
+                            SERCOM_USART_CTRLB_SBMODE_1BIT,
+                            SERCOM_USART_CTRLA_FORM_FRAME,
+                            SERCOM_USART_CTRLB_PMODE_EVEN,
                             DBG_UART_TX_PAD, DBG_UART_RX_PAD);
+    uart_console(&console, &dbg_uart);
 
     // Setup the console, print version info and prompt
-    console_init(&dbg_uart, cmd_table, ARRAY_SIZE(cmd_table));
-    console_print("\r\nSAML21-XPLAINED-PRO Bootloader Ver %d.%d.%d\r\n",
+    console_init(&console, cmd_table, ARRAY_SIZE(cmd_table),
+                 (console_send_t)uart_send_wait, 
+                 (console_recv_t)uart_recv,
+                 &dbg_uart);
+    console_print(&console, "\r\nSAML21-XPLAINED-PRO Bootloader Ver %d.%d.%d\r\n",
                   VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-    console_prompt();
+    console_prompt(&console);
 
     // Mainloop
     while (1)

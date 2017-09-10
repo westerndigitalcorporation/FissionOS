@@ -41,6 +41,7 @@
 #include "vectors.h"
 #include "context.h"
 #include "systick.h"
+#include "console.h"
 
 #include "sam4e_ek_version.h"
 
@@ -55,9 +56,7 @@
 #include "sam4_ac.h"
 #include "sam4_reset.h"
 #include "sam4_gmac.h"
-#include "sam4_uart.h"
 
-#include "console.h"
 #include "workqueue.h"
 #include "mailbox.h"
 #include "semaphore.h"
@@ -81,6 +80,7 @@
 #define PHY_ADDR                      0x01
 
 
+console_t console;
 uint8_t mac_addr[6] = { 0xb8, 0x27, 0xeb, 0x05, 0x45, 0xd5 };
 
 /* Network interface global variables */
@@ -90,9 +90,9 @@ static struct ip_addr gw;
 /*
  * Command callbacks
  */
-int cmd_reset(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_ipstats(uart_drv_t *uart, int argc, char *argv[]);
-int cmd_threads(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_reset(console_t *console, int argc, char *argv[]);
+int cmd_ipstats(console_t *console, int argc, char *argv[]);
+int cmd_threads(console_t *console, int argc, char *argv[]);
 cmd_entry_t cmd_table[] =
 {
     {
@@ -117,10 +117,10 @@ cmd_entry_t cmd_table[] =
     },
 };
 
-int cmd_ipstats(uart_drv_t *uart, int argc, char *argv[])
+int cmd_ipstats(console_t *console, int argc, char *argv[])
 {
     stats_display();
-    console_print("\r\n");
+    console_print(console, "\r\n");
     return 0;
 }
 
@@ -238,6 +238,10 @@ swd_sam4e_driver_t swd_driver =
     // TODO:  Hook up SWD driver pins
 };
 
+void debug_print(char *fmt, ...)
+{
+}
+
 int main(int argc, char *argv[])
 {
     struct netconn *http_netconn;
@@ -260,13 +264,20 @@ int main(int argc, char *argv[])
     pwm_enable(led_throbber);
     led_handle_work(NULL);
 
-    console_init(&console_uart, cmd_table, ARRAY_SIZE(cmd_table),
-                 CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN,
-                 CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN);
+    GPIO_DISABLE(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_TXPORT, CONSOLE_TX_PIN, 0);
+    GPIO_PERIPHERAL_SET(CONSOLE_GPIO_RXPORT, CONSOLE_RX_PIN, 0);
+    uart_console(&console, &console_uart);
 
-    console_print("\r\nSAM4E-EK Ver %d.%d.%d\r\n",
+    console_init(&console, cmd_table, ARRAY_SIZE(cmd_table),
+                 (console_send_t)uart_send_wait, 
+                 (console_recv_t)uart_recv,
+                 &console_uart);
+
+    console_print(&console, "\r\nSAM4E-EK Ver %d.%d.%d\r\n",
                   VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-    console_prompt();
+    console_prompt(&console);
 
     // Wait for link up before continuing
     workqueue_add(&link_wq, SYSTICK_FREQ);

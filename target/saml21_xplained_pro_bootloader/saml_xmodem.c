@@ -61,19 +61,19 @@ uint64_t xmodem_system_time_ms(void)
 
 uint32_t xmodem_send(void *arg, uint8_t *data, uint8_t len)
 {
-    uart_drv_t *uart = (uart_drv_t *)xmodem_handle.arg;
+    console_t *console = (console_t *)xmodem_handle.arg;
 
-    uart_send_wait(uart, (char *)data, len);
+    console->send(console->arg, (char *)data, len);
 
     return len;
 }
 
 void xmodem_recv_handler(void *arg)
 {
-    uart_drv_t *uart = (uart_drv_t *)xmodem_handle.arg;
+    console_t *console = (console_t *)xmodem_handle.arg;
     uint8_t data;
 
-    while (uart_recv(uart, &data, sizeof(data)))
+    while (console->recv(console->arg, (char *)&data, sizeof(data)))
     {
         if (xmodem_recv(&xmodem_handle, &data, sizeof(data)))
         {
@@ -86,10 +86,10 @@ void xmodem_recv_handler(void *arg)
             // Write out the boot configuration information
             nvm_write(BOOTCFG_ADDR, (uint8_t *)&bootcfg, sizeof(bootcfg));
 
-            console_work.arg = console_default_arg;
-            console_work.callback = console_default_cb;
+            console->wq.arg = console_default_arg;
+            console->wq.callback = console_default_cb;
 
-            workqueue_add(&console_work, 0);
+            workqueue_add(&console->wq, 0);
 
             // Save the config word
 
@@ -107,10 +107,12 @@ workqueue_t xmodem_work =
 
 void xmodem_timer_handler(void *arg)
 {
+    console_t *console = (console_t *)xmodem_handle.arg;
+
     if (xmodem_timer(&xmodem_handle))
     {
-        console_work.arg = console_default_arg;
-        console_work.callback = console_default_cb;
+        console->wq.arg = console_default_arg;
+        console->wq.callback = console_default_cb;
 
         return;
     }
@@ -120,9 +122,11 @@ void xmodem_timer_handler(void *arg)
 
 void xmodem_recv_cb(xmodem_t *xmodem, void *arg, uint8_t *data, uint8_t len)
 {
+    console_t *console = (console_t *)xmodem_handle.arg;
+
     if (!data)
     {
-        console_prompt();
+        console_prompt(console);
 
         return;
     }
@@ -142,11 +146,11 @@ void xmodem_bootcfg_clear(void)
     nvm_write(BOOTCFG_ADDR, (uint8_t *)&bootcfg, sizeof(bootcfg));
 }
 
-int cmd_xmodem(uart_drv_t *uart, int argc, char *argv[])
+int cmd_xmodem(console_t *console, int argc, char *argv[])
 {
     if (argc < 2)
     {
-        cmd_help_usage(uart, argv[0]);
+        cmd_help_usage(console, argv[0]);
 
         return 0;
     }
@@ -154,17 +158,17 @@ int cmd_xmodem(uart_drv_t *uart, int argc, char *argv[])
     if (!strcmp(argv[1], "flash"))
     {
         // Take control of the UART directly
-        console_default_cb = console_work.callback;
-        console_default_arg = console_work.arg;
+        console_default_cb = console->wq.callback;
+        console_default_arg = console->wq.arg;
 
-        console_work.callback = xmodem_recv_handler;
-        console_work.arg = &xmodem_handle;
+        console->wq.callback = xmodem_recv_handler;
+        console->wq.arg = &xmodem_handle;
 
-        console_print("Receiving XModem...\r\n");
+        console_print(console, "Receiving XModem...\r\n");
 
         xmodem_offset = BOOTLOADER_SIZE;
 
-        xmodem_init(&xmodem_handle, uart, xmodem_recv_cb);
+        xmodem_init(&xmodem_handle, console, xmodem_recv_cb);
         xmodem_start(&xmodem_handle);
         xmodem_timer_handler(NULL);
 
@@ -176,7 +180,7 @@ int cmd_xmodem(uart_drv_t *uart, int argc, char *argv[])
         return 0;
     }
 
-    cmd_help_usage(uart, argv[0]);
+    cmd_help_usage(console, argv[0]);
 
     return 0;
 }

@@ -41,4 +41,5 @@ SConscript([
     'saml/SConscript',
     'zynqmp/SConscript',
     'target/SConscript',
+    'tools/SConscript',
 ])

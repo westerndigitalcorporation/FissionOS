@@ -50,6 +50,7 @@
 #define DBG_UART_BAUDRATE                        38400
 
 #ifdef DBG_UART_PA45
+  #define DBG_UART_ID                            0
   #define DBG_UART_GCLK_PERIPHERAL               GCLK_SERCOM0_CORE
   #define DBG_UART_PERIPHERAL_ID                 PERIPHERAL_ID_SERCOM0
   #define DBG_UART_PORT                          PORTA
@@ -60,6 +61,7 @@
   #define DBG_UART_PORT_RX_MUX                   3
   #define DBG_UART_RX_PAD                        SERCOM_USART_CTRLA_RXPO_PAD1
 #else /* DBG_UART_PA45 */
+  #define DBG_UART_ID                            3
   #define DBG_UART_GCLK_PERIPHERAL               GCLK_SERCOM3_CORE
   #define DBG_UART_PERIPHERAL_ID                 PERIPHERAL_ID_SERCOM3
   #define DBG_UART_PORT                          PORTA

@@ -34,13 +34,15 @@
 
 
 #include <stdint.h>
+#include <string.h>
 
+#include <console.h>
 
 #include "saml_tc.h"
 
 
 void tc_pwm_init(volatile tc_t *tc, uint32_t prescale_flag,
-                 uint8_t invert, uint16_t duty)
+                 uint8_t invert)
 {
     tc->ctrla = TC_CTRLA_SWRST;
     while (tc->syncbusy)
@@ -49,10 +51,7 @@ void tc_pwm_init(volatile tc_t *tc, uint32_t prescale_flag,
     tc->ctrla = TC_CTRLA_MODE_COUNT16 | prescale_flag;
     tc->drvctrl = invert ? TC_DRVCTRL_INVEN0 : 0;
     tc->wave = TC_WAVE_NPWM;
-    tc->evctrl = TC_EVCTRL_EVACT_OFF;
     tc->dbgctrl = TC_DBGCTRL_DBGRUN;
-
-    tc->cc0 = duty;
 
     while (tc->syncbusy)
         ;
@@ -65,8 +64,36 @@ void tc_disable(volatile tc_t *tc)
     tc->ctrla &= ~TC_CTRLA_ENABLE;
 }
 
-void tc_pwm_duty(volatile tc_t *tc, uint16_t duty)
+void tc_pwm_duty(volatile tc_t *tc, int channel, uint16_t duty)
 {
-    tc->ccbuf0 = duty;
+    if (!channel)
+    {
+        tc->ccbuf0 = duty;
+    }
+    else
+    {
+        tc->ccbuf1 = duty;
+    }
+}
+
+int cmd_tc(console_t *console, int argc, char *argv[])
+{
+    volatile tc_t *tc = TC0;
+
+    if ((argc == 2) && !strcmp(argv[1], "show"))
+    {
+        console_print(console, "Main Registers\r\n");
+
+        tc->ctrlbset = TC_CTRLBSET_CMD_READSYNC;
+        while (tc->syncbusy)
+            ;
+        console_print(console, "  count   : 0x%08x\r\n", tc->count);
+    }
+    else
+    {
+        cmd_help_usage(console, argv[0]);
+    }
+
+    return 0;
 }
 

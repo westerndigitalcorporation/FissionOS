@@ -151,6 +151,17 @@ typedef struct tc
 #define TC4                                      ((volatile tc_t *)0x43000800)
 #endif /* __AT91SAML21__ */
 
+#if defined(__ATSAMD53__)
+#define TC0                                      ((volatile tc_t *)0x40003800)
+#define TC1                                      ((volatile tc_t *)0x40003c00)
+#define TC2                                      ((volatile tc_t *)0x4101a000)
+#define TC3                                      ((volatile tc_t *)0x4101c000)
+#define TC4                                      ((volatile tc_t *)0x42001400)
+#define TC5                                      ((volatile tc_t *)0x42001800)
+#define TC6                                      ((volatile tc_t *)0x43001400)
+#define TC7                                      ((volatile tc_t *)0x43001800)
+#endif /* __ATSAMD53__ */
+
 #if defined(__AT91SAMD20__)
 #define TC0                                      ((volatile tc_t *)0x42002000)
 #define TC1                                      ((volatile tc_t *)0x42002400)
@@ -163,9 +174,20 @@ typedef struct tc
 #endif /* __AT91SAMD20__ */
 
 void tc_pwm_init(volatile tc_t *tc, uint32_t prescale_flag,
-                 uint8_t invert, uint16_t duty);
+                 uint8_t invert);
 void tc_disable(volatile tc_t *tc);
-void tc_pwm_duty(volatile tc_t *tc, uint16_t duty);
+void tc_pwm_duty(volatile tc_t *tc, int channel, uint16_t duty);
+
+int cmd_tc(console_t *console, int argc, char *argv[]);
+#define CONSOLE_CMD_TC                          \
+    {                                            \
+        .cmdstr = "tc",                         \
+        .callback = cmd_tc,                     \
+        .usage = "  tc show\r\n",               \
+        .help =                                  \
+            "  TC control and debug.\r\n" \
+            "    show       : Show registers.\r\n" \
+    }
 
 
 #endif /* __SAML_TC_H__ */

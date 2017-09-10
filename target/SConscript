@@ -75,13 +75,32 @@ cpu_info = {
     'at91saml21_flash' : [
         'at91saml21',
         'at91saml21_flash.ld',
-        [],
+        Split('''
+              saml21_xplained_pro/usb_config.c
+        '''),
     ],
 
     'at91saml21_sram' : [
         'at91saml21',
         'at91saml21_sram.ld',
         [],
+    ],
+
+    'at91samd20' : [
+        'at91samd20',
+        'at91samd20_flash.ld',
+        Split('''
+            samd/samd_xmodem.c
+        '''),
+    ],
+
+    'atsamd53' : [
+        'atsamd53',
+        'atsamd53_flash.ld',
+        Split('''
+              samd53/usb_config.c
+              samd53/usb_vendor.c
+        '''),
     ],
 
     'imx6' : [
@@ -139,7 +158,21 @@ board_info = {
     ],
 
     'saml21_xplained_pro' : [
-        'at91saml21_sram',
+        'at91saml21_flash',
+        Split('''
+        '''),
+        [],
+    ],
+
+    'samd' : [
+        'at91samd20',
+        Split('''
+        '''),
+        [],
+    ],
+
+    'samd53' : [
+        'atsamd53',
         Split('''
         '''),
         [],
@@ -171,7 +204,9 @@ for board in board_info:
     benv = targets[platform]['ENV'].Clone()
 
     # Generate board name including version
-    version_str = benv.VersionString(File(board + os.sep + 'version'))
+    version_file = File(board + os.sep + 'version')
+    benv['VERSION'] = benv.VersionTuple(version_file)
+    version_str = benv.VersionString(version_file)
     board_name = board + "_" + version_str
 
     # Generate any ROM object source files
@@ -190,10 +225,19 @@ for board in board_info:
     objects.append(benv.Object(board + os.sep + board + '.c'))  # Add implicit board source
 
     elf = benv.Elf(board, cpu_objects[platform] + objects + targets[platform]['LIBS'])
+
+    # Raw binary
     binary = benv.Bin(board_name, elf)
 
     # Create signature
     sig = benv.Usersig(board_name, binary);
 
-    Default([binary, sig])
+    defaults = [binary, sig]
+
+    # Create application image if it's in the environment
+    if 'Firmware' in benv['BUILDERS']:
+        fw = benv.Firmware(board_name, binary);
+        defaults.append(fw)
+
+    Default(defaults)
 

@@ -37,14 +37,13 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "vectors.h"
+#include <vectors.h>
+#include <console.h>
+
 
 #include "sam4_gpio.h"
 #include "sam4_clock.h"
 #include "sam4_uart.h"
-
-#include "console.h"
-
 #include "sam4_tc.h"
 
 
@@ -197,7 +196,7 @@ int tc_capture_freq(tc_drv_t *dev)
     return 0;
 }
 
-int cmd_tc(uart_drv_t *uart, int argc, char *argv[])
+int cmd_tc(console_t *console, int argc, char *argv[])
 {
     int i;
 
@@ -206,7 +205,7 @@ int cmd_tc(uart_drv_t *uart, int argc, char *argv[])
         if (tcs[i])
         {
             volatile tc_channel_t *channel = &tcs[i]->tc->channel[tcs[i]->channel];
-            console_print("%2d %2d CCR %08x CMR %08x SR %08x CV %08x RA %08x RB %08x\r\n", i, tcs[i]->channel,
+            console_print(console, "%2d %2d CCR %08x CMR %08x SR %08x CV %08x RA %08x RB %08x\r\n", i, tcs[i]->channel,
                           channel->ccr, channel->cmr, channel->sr, channel->cv, channel->ra, channel->rb);
         }
     }

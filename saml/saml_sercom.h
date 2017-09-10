@@ -31,12 +31,12 @@
  * Author: Jeremy Garff <jeremy.garff@sandisk.com>
  *
  */
-
-
 #ifndef __SAML_SERCOM_H__
 #define __SAML_SERCOM_H__
 
-#ifdef __AT91SAML21__
+#include <console.h>
+
+#if defined(__AT91SAML21__) || defined(__ATSAMD53__)
 typedef volatile struct sercom_usart
 {
     uint32_t ctrla;
@@ -227,7 +227,8 @@ typedef struct uart_drv
 } uart_drv_t;
 
 
-void sercom_usart_async_init(uart_drv_t *uart, uint8_t peripheral_id,
+void sercom_usart_async_init(int devnum, 
+                             uart_drv_t *uart, uint8_t peripheral_id,
                              uint32_t clockrate, uint32_t baudrate,
                              uint32_t chsize, uint32_t sbmode, uint32_t form, uint32_t pmode,
                              uint32_t txpo, uint32_t rxpo);
@@ -237,6 +238,7 @@ void sercom_usart_disable(volatile sercom_usart_t *usart);
 void uart_init(uart_drv_t *uart);
 void uart_send_wait(uart_drv_t *uart, char *data, uint32_t len);
 int uart_recv(uart_drv_t *uart, uint8_t *data, int maxlen);
+void uart_console(console_t *console, uart_drv_t *uart);
 
 
 typedef volatile struct sercom_i2c
@@ -357,6 +359,16 @@ typedef volatile struct sercom_i2c
 #define SERCOM4_ADDR                             0x42001800
 #define SERCOM5_ADDR                             0x42001c00
 #endif /* __AT91SAMD20__ */
+#if defined(__ATSAMD53__)
+#define SERCOM0_ADDR                             0x40003000
+#define SERCOM1_ADDR                             0x40003400
+#define SERCOM2_ADDR                             0x41002000
+#define SERCOM3_ADDR                             0x41002400
+#define SERCOM4_ADDR                             0x43000000
+#define SERCOM5_ADDR                             0x43000400
+#define SERCOM6_ADDR                             0x43000800
+#define SERCOM7_ADDR                             0x43000c00
+#endif /* __ATSAMD53__ */
 
 #define SERCOM0_USART                            ((volatile sercom_usart_t *)SERCOM0_ADDR)
 #define SERCOM1_USART                            ((volatile sercom_usart_t *)SERCOM1_ADDR)
@@ -364,6 +376,10 @@ typedef volatile struct sercom_i2c
 #define SERCOM3_USART                            ((volatile sercom_usart_t *)SERCOM3_ADDR)
 #define SERCOM4_USART                            ((volatile sercom_usart_t *)SERCOM4_ADDR)
 #define SERCOM5_USART                            ((volatile sercom_usart_t *)SERCOM5_ADDR)
+#if defined(__ATSAMD53__)
+#define SERCOM6_USART                            ((volatile sercom_usart_t *)SERCOM6_ADDR)
+#define SERCOM7_USART                            ((volatile sercom_usart_t *)SERCOM7_ADDR)
+#endif /* __ATSAMD53__ */
 
 #define SERCOM0_I2C                              ((volatile sercom_i2c_t *)SERCOM0_ADDR)
 #define SERCOM1_I2C                              ((volatile sercom_i2c_t *)SERCOM1_ADDR)
@@ -371,8 +387,16 @@ typedef volatile struct sercom_i2c
 #define SERCOM3_I2C                              ((volatile sercom_i2c_t *)SERCOM3_ADDR)
 #define SERCOM4_I2C                              ((volatile sercom_i2c_t *)SERCOM4_ADDR)
 #define SERCOM5_I2C                              ((volatile sercom_i2c_t *)SERCOM5_ADDR)
+#if defined(__ATSAMD53__)
+#define SERCOM6_I2C                              ((volatile sercom_i2c_t *)SERCOM6_ADDR)
+#define SERCOM7_I2C                              ((volatile sercom_i2c_t *)SERCOM7_ADDR)
+#endif /* __ATSAMD53__ */
 
+#if defined(__ATSAMD53__)
+#define SERCOM_COUNT                             8
+#else  /* __ATSAMD53__ */
 #define SERCOM_COUNT                             6
+#endif /* __ATSAMD53__ */
 
 
 /*
@@ -450,7 +474,7 @@ void twi_slave_send(twi_drv_t *twi, uint8_t data);
             "    write data : Bytes to write separated by spaces.\r\n", \
     }
 
-int cmd_twi(uart_drv_t *uart, int argc, char *argv[]);
+int cmd_twi(console_t *console, int argc, char *argv[]);
 
 
 #endif /* __SAML_SERCOM_H__ */
